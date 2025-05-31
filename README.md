@@ -1,4 +1,4 @@
-# 《传说之下：劫后余生》(Undertale-Life-After)
+# 《传说之下：劫后余生》(Undertale: Survival After Disaster)
 
 ![游戏封面](images/background_5.jpg)
 
