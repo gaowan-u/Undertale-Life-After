@@ -1,101 +1,177 @@
-# 《传说之下：劫后余生》(Undertale: Survival After Disaster)
+# 🎮 传说之下：劫后余生  
+**Undertale: Survival After Disaster**  
+_开发版本 v0.01 测试版_
 
 ![游戏封面](images/background_5.jpg)
 
-## 🎮 项目介绍
-《传说之下：劫后余生》是一款基于 Toby Fox 的经典游戏《Undertale》世界观开发的同人游戏。游戏延续了原作独特的战斗系统和叙事风格，讲述了一个全新的地下世界冒险故事。
+---
 
-**核心特点**：
-- 原汁原味的 Undertale 风格战斗系统
-- 全新的故事情节与角色设定
-- 复古像素美术风格 + 原创音乐
-- 丰富的道德选择影响剧情走向
+## 🧭 项目简介
 
-## ⚙️ 运行环境
-- **平台**: Android
-- **开发框架**: Pygame
-- **必需组件**:
-  - Termux
-  - Termux-X11
-  - Python 3.8+
-- **推荐设备**: Android 9.0 及以上版本
+《传说之下：劫后余生》是一款基于 Toby Fox 原作《Undertale》世界观制作的粉丝向剧情游戏。  
+游戏继承了原作的独特战斗系统与叙事风格，讲述在一个全新地下世界展开的生还冒险。  
 
-## 📥 安装指南
+由 **BOOM! Studio（原 灰烬重生工作室）** 制作，项目完全开源，面向所有热爱 Undertale 的玩家与开发者。
 
-### 1. 安装必要组件
+---
+
+## 🌟 游戏特色
+
+- 原汁原味的 Undertale 式战斗机制
+- 全新角色设定与原创主线剧情
+- 像素风美术 + 自制音乐
+- 多线道德选择影响故事走向
+
+---
+
+## 🛠️ 运行环境
+
+- **平台**：Android 9.0+
+- **运行环境**：Termux + Termux-X11
+- **开发语言**：Python 3.8+
+- **游戏框架**：Pygame
+
+---
+
+## 📦 安装指南（适配 Termux 原生环境）
+
+请先通过 [F-Droid](https://f-droid.org/) 安装最新版 Termux 与 Termux-X11。
+
+---
+
+### 🧱 第一步：安装系统依赖
+
 ```bash
-# 更新包管理器
 pkg update && pkg upgrade
 
-# 安装基础组件
-pkg install python git wget ffmpeg
+pkg install python clang make git wget ffmpeg pkg-config freetype libpng libjpeg-turbo
 
-# 安装X11支持
+pkg install sdl2 sdl2-image sdl2-mixer sdl2-ttf
+
 pkg install x11-repo
 pkg install termux-x11-nightly
+````
+
+---
+
+### 🐍 第二步：安装 Python 构建环境
+
+```bash
+pip install --upgrade pip setuptools wheel cython
 ```
 
-### 2. 安装Pygame依赖
-```bash
-# 安装编译依赖
-pkg install make clang python
+---
 
-# 安装Pygame
+### 🎮 第三步：安装 Pygame
+
+```bash
 pip install pygame
 ```
 
-### 3. 获取游戏源码
+如安装失败，可尝试：
+
+```bash
+LDFLAGS="-lm -lpython3.12" CFLAGS="-O2" pip install pygame --no-cache-dir
+```
+
+---
+
+### 📥 第四步：下载游戏源码
+
 ```bash
 git clone https://github.com/gaowan-u/Undertale-Life-After.git
 cd Undertale-Life-After
 ```
 
-## 🚀 运行游戏
-```bash
-# 启动Termux-X11服务
-termux-x11 &
+---
 
-# 运行游戏
+### 🚀 第五步：运行游戏
+
+```bash
+termux-x11 &
 python main.py
 ```
 
-## 📂 项目结构（实际结构）
-```
+---
+
+## 📂 项目结构概览
+
+```plaintext
 .
 ├── README.md           # 项目说明文档
-├── audios/             # 游戏音频文件
-│   ├── begin.ogg       # 开始音乐
-│   └── test.ogg        # 测试音乐
-├── fonts/              # 字体文件
-│   └── SourceHanSansSC-Regular-2.otf  # 思源黑体
-├── images/             # 游戏图片资源
-│   ├── background_1.png # 背景图1
-│   ├── background_2.png # 背景图2
-│   ├── background_3.png # 背景图3
-│   └── background_4.png # 背景图4
+├── LICENSE             # 开源协议
 ├── main.py             # 游戏主程序
-└── videos/             # 游戏视频文件
-    └── begin.mp4       # 开场视频
+├── audios/             # 音频资源（.ogg）
+├── fonts/              # 字体资源（.otf）
+├── images/             # 图像资源（.png）
+├── videos/             # 开场动画（.mp4）
 ```
-
-## 🛠️ 开发指南
-1. **资源规范**：
-   - 图片：PNG 格式，建议尺寸 1920x1080
-   - 音频：OGG 格式，44.1kHz
-   - 视频：MP4 格式，H.264编码
-
-2. **添加新资源**：
-   - 将图片放入 `images/` 目录
-   - 将音频放入 `audios/` 目录
-   - 将视频放入 `videos/` 目录
-
-## 📜 许可证
-本项目采用 [MIT 许可证](LICENSE)，允许自由使用和修改代码，但请遵守：
-- 不得用于商业目的
-- 需注明原始项目来源
-- 保留版权声明
 
 ---
 
-> **温馨提示**：游戏仍在开发中，欢迎贡献代码！  
-> 遇到问题？请提交 [Issue](https://github.com/gaowan-u/Undertale-Life-After/issues)
+## 🎨 资源规范
+
+| 类型 | 格式建议          | 备注         |
+| -- | ------------- | ---------- |
+| 图像 | PNG 1920×1080 | 建议无透明      |
+| 音频 | OGG 44.1kHz   | 体积小质量高     |
+| 视频 | MP4 H.264 编码  | 控制在 720p 内 |
+| 字体 | OTF / TTF     | 推荐思源黑体     |
+
+> 所有资源请放入对应目录，无需修改主程序结构。
+
+---
+
+## 📈 开发进度说明：v0.01 测试版
+
+该版本为**开发中的预览构建**，用于资源加载测试、流程演示和反馈收集。
+剧情、交互、动画与系统功能仍在持续开发中，实际体验不代表最终品质。
+
+我们欢迎你反馈 Bug、提出建议或加入创作，一起完善这个地下故事！
+
+---
+
+## 🔐 隐私政策
+
+**版本号**：v1.0
+**更新日期**：2025 年 6 月 8 日
+**开发团队**：BOOM! Studio（原 灰烬重生工作室）
+
+《传说之下：劫后余生》为纯粹的粉丝项目，不含任何网络连接与数据采集行为。
+
+* 不收集或上传任何用户数据
+* 不联网、不访问服务器
+* 不请求相册、联系人、摄像头、麦克风等权限
+* 所有资源离线运行、无广告、无商业行为
+
+📧 如有问题可联系：**[gaowange2024@163.com](mailto:gaowange2024@163.com)**
+
+---
+
+## 🔐 Privacy Policy (English)
+
+**Version**: v1.0
+**Last Updated**: June 8, 2025
+**Developer**: BOOM! Studio (formerly 灰烬重生工作室)
+
+This game does **not** collect or store any user data.
+It is fully offline, contains **no ads**, and does not access sensitive permissions.
+
+We are committed to respecting user privacy.
+
+📧 Contact: **[gaowange2024@163.com](mailto:gaowange2024@163.com)**
+
+---
+
+## 🤝 贡献与支持
+
+欢迎任何形式的参与：
+
+* 报错 / 提建议 → Issues
+* 优化剧情 / 玩法 → Pull Requests
+* 提供音乐、美术、剧本 → BOOM! Studio
+
+---
+
+> 💬 感谢所有喜爱 Undertale 的灵魂们——
+> 在这片废墟之后，我们一起重新点燃希望之光。

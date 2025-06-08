@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module='pygame.pkgdata')
 import pygame
 import sys
 import os
@@ -5,15 +7,20 @@ import time
 
 # 初始化Pygame
 pygame.init()
-pygame.mixer.init()  # 初始化音频系统
+pygame.mixer.init()
 
 # 设置窗口尺寸
 screen_width, screen_height = 1920, 1080
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("传说之下-劫后余生")
 
-# 图片路径
-image_folder = "/storage/emulated/0/传说之下-劫后余生/images"
+# 路径设置
+base_folder = "/storage/emulated/0/传说之下-劫后余生"
+image_folder = os.path.join(base_folder, "images")
+audio_folder = os.path.join(base_folder, "audios")
+audio_file = "begin.ogg"
+
+# 所有背景图（1~4）
 image_files = [
     "background_1.png",
     "background_2.png",
@@ -21,83 +28,88 @@ image_files = [
     "background_4.png"
 ]
 
-# 音频路径 - 只加载一个8秒音频
-audio_folder = "/storage/emulated/0/传说之下-劫后余生/audios"
-audio_file = "begin.ogg"  # 8秒音频
-
-# 加载资源函数
+# 加载资源
 def load_resources():
-    """加载所有图片和音频，检查是否存在"""
-    # 加载图片
+    # 加载第0张图片（单独显示）
+    first_image_path = os.path.join(image_folder, "background_0.jpg")
+    if not os.path.exists(first_image_path):
+        print(f"错误: 缺少初始图片: {first_image_path}")
+        sys.exit(1)
+
+    try:
+        first_image = pygame.image.load(first_image_path)
+        first_image = pygame.transform.scale(first_image, (screen_width, screen_height))
+    except pygame.error:
+        print(f"错误: 无法加载初始图片: {first_image_path}")
+        sys.exit(1)
+
+    # 加载其余图片
     images = []
     for img_file in image_files:
         path = os.path.join(image_folder, img_file)
         if not os.path.exists(path):
             print(f"错误: 图片文件不存在: {path}")
             sys.exit(1)
-        
         try:
             img = pygame.image.load(path)
-            if img.get_width() != screen_width or img.get_height() != screen_height:
-                print(f"警告: 图片尺寸不匹配: {img_file} ({img.get_width()}x{img.get_height()})")
+            img = pygame.transform.scale(img, (screen_width, screen_height))
             images.append(img)
         except pygame.error:
             print(f"错误: 无法加载图片: {path}")
             sys.exit(1)
-    
-    if not images:
-        print("错误: 没有找到可加载的图片")
-        sys.exit(1)
-    
+
     # 加载音频
     audio_path = os.path.join(audio_folder, audio_file)
     if not os.path.exists(audio_path):
         print(f"错误: 音频文件不存在: {audio_path}")
         sys.exit(1)
-    
+
     try:
         sound = pygame.mixer.Sound(audio_path)
     except pygame.error:
         print(f"错误: 无法加载音频: {audio_path}")
         sys.exit(1)
-    
-    return images, sound
 
-# 加载资源
-images, audio = load_resources()
+    return first_image, images, sound
+
+# 资源加载
+first_image, images, audio = load_resources()
 current_image_index = 0
 last_change_time = time.time()
 
-# 可调整的图片切换间隔（秒）
-# 你可以根据需要调整这些值
+# 每张图片显示的时长（单位：秒）
 image_intervals = {
-    "img1_to_img2": 2.5,   # 第一张图片持续时间（2秒）
-    "img2_to_img3": 0.3,   # 第二张图片持续时间（0.5秒）
-    "img3_to_img4": 0.3  # 第三张图片持续时间（1秒）
+    "img1_to_img2": 4.0,
+    "img2_to_img3": 0.75,
+    "img3_to_img4": 0.65
 }
 
-# 主循环
+# 主循环开始
 running = True
 try:
-    # 初始播放音频
+    # step 1：先显示第0张图片（1秒）
+    screen.blit(first_image, (0, 0))
+    pygame.display.flip()
+    time.sleep(2)  # 停留2秒
+
+    # step 2：播放音频并开始切图逻辑
     audio.play()
-    start_time = time.time()  # 记录开始时间
-    
+    start_time = time.time()
+
     while running:
         current_time = time.time()
         elapsed = current_time - start_time
-        
-        # 处理事件
+
+        # 事件处理
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
-        
-        # 切换图片逻辑
+
+        # 图像切换逻辑
         if current_image_index < len(images) - 1:
-            # 根据当前图片索引确定切换间隔
             if current_image_index == 0:
                 interval = image_intervals["img1_to_img2"]
             elif current_image_index == 1:
@@ -105,31 +117,21 @@ try:
             elif current_image_index == 2:
                 interval = image_intervals["img3_to_img4"]
             else:
-                interval = 1.0  # 默认值
-            
-            # 检查是否需要切换到下一张图片
+                interval = 1.0
+
             if current_time - last_change_time > interval:
-                # 切换到下一张图片
                 current_image_index += 1
                 last_change_time = current_time
-        
-        # 清屏
+
+        # 渲染所有已切换的图片
         screen.fill((0, 0, 0))
-        
-        # 叠加显示所有图片（从第一张到当前索引）
         for i in range(current_image_index + 1):
             screen.blit(images[i], (0, 0))
-        
-        # 更新显示
         pygame.display.flip()
-        
-        # 控制帧率
         pygame.time.Clock().tick(60)
 
 except KeyboardInterrupt:
-    print("\n程序结束 (Ctrl+C)")
-
+    print("\n程序终止（Ctrl+C）")
 finally:
-    # 退出Pygame
     pygame.quit()
     sys.exit()
