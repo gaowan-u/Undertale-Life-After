@@ -15,7 +15,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("传说之下-劫后余生")
 
 # 路径设置
-base_folder = "/storage/emulated/0/传说之下-劫后余生"
+base_folder = os.path.dirname(os.path.abspath(__file__))  # 获取脚本所在目录
 image_folder = os.path.join(base_folder, "images")
 audio_folder = os.path.join(base_folder, "audios")
 audio_file = "begin.ogg"
