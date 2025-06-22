@@ -90,6 +90,7 @@ try:
     # step 1：先显示第0张图片（1秒）
     screen.blit(first_image, (0, 0))
     pygame.display.flip()
+    first_image = None # 释放资源，减少内存占用。
     time.sleep(2)  # 停留2秒
 
     # step 2：播放音频并开始切图逻辑
