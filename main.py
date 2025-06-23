@@ -77,23 +77,19 @@ first_image, images, audio = load_resources()
 current_image_index = 0
 last_change_time = time.time()
 
-# 每张图片显示的时长（单位：秒）
 image_intervals = {
     "img1_to_img2": 4.0,
     "img2_to_img3": 0.75,
     "img3_to_img4": 0.65
 }
 
-# 主循环开始
-running = True
+running = True # 程序为True时与运行，false时结束
 try:
-    # step 1：先显示第0张图片（1秒）
     screen.blit(first_image, (0, 0))
     pygame.display.flip()
-    first_image = None # 释放资源，减少内存占用。
-    time.sleep(2)  # 停留2秒
+    first_image = None # 释放资源，节省内存。
+    time.sleep(2)
 
-    # step 2：播放音频并开始切图逻辑
     audio.play()
     start_time = time.time()
 
@@ -112,7 +108,7 @@ try:
         # 图像切换逻辑
         if current_image_index < len(images) - 1:
             if current_image_index == 0:
-                interval = image_intervals["img1_to_img2"]
+                interval = image_intervals["img1_to_img2"] 
             elif current_image_index == 1:
                 interval = image_intervals["img2_to_img3"]
             elif current_image_index == 2:
@@ -124,7 +120,7 @@ try:
                 current_image_index += 1
                 last_change_time = current_time
 
-        # 渲染所有已切换的图片
+
         screen.fill((0, 0, 0))
         for i in range(current_image_index + 1):
             screen.blit(images[i], (0, 0))
@@ -132,7 +128,8 @@ try:
         pygame.time.Clock().tick(60)
 
 except KeyboardInterrupt:
-    print("\n程序终止（Ctrl+C）")
+    print("程序结束。")
+
 finally:
     pygame.quit()
     sys.exit()
