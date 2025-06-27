@@ -1,4 +1,6 @@
 # main.py
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module='pygame.pkgdata')
 import pygame
 from intro_animation import play
 from intro_animation import screen

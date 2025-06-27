@@ -1,6 +1,4 @@
 # intro_animation.py
-import warnings
-warnings.filterwarnings("ignore", category=UserWarning, module='pygame.pkgdata')
 import pygame
 import sys
 import os
@@ -79,7 +77,7 @@ def play():
     image_intervals = {
         "img1_to_img2": 4.0,
         "img2_to_img3": 0.75,
-        "img3_to_img4": 0.65
+        "img3_to_img4": 0.7
     }
 
     running = True
