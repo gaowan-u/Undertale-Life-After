@@ -1,7 +1,7 @@
 # 🎮 传说之下：劫后余生  
 
 **Undertale: Survival After Disaster**  
-_开发版本 v0.0.1 测试版_
+_开发版本 v0.0.1-beta_
 
 📁 本项目中的素材目录均已包含 `.nomedia` 文件，防止出现在用户图库或播放器中，保护沉浸体验。
 ![游戏封面](images/background_5.jpg)
@@ -115,7 +115,7 @@ python main.py
 
 ---
 
-## 📈 开发进度说明：v0.0.1 测试版
+## 📈 开发进度说明：v0.0.1-beta
 
 该版本为**开发中的预览构建**，用于资源加载测试、流程演示和反馈收集。
 剧情、交互、动画与系统功能仍在持续开发中，实际体验不代表最终品质。
@@ -132,10 +132,14 @@ python main.py
 
 《传说之下：劫后余生》为纯粹的粉丝项目，不含任何网络连接与数据采集行为。
 
+- 不收集、存储或处理任何用户个人信息（包括但不限于姓名、联系方式、设备信息等）
 - 不收集或上传任何用户数据
 - 不联网、不访问服务器
-- 不请求相册、联系人、摄像头、麦克风等权限
+- 不请求相册、联系人、摄像头、麦克风等敏感权限
+- 本地运行期间不会生成任何可识别用户身份的日志或文件
 - 所有资源离线运行、无广告、无商业行为
+
+如未来版本涉及联网或权限变更，将在更新前明确告知用户。
 
 📧 如有问题可联系：**[gaowange2024@163.com](mailto:gaowange2024@163.com)**
 
@@ -147,8 +151,14 @@ python main.py
 **Last Updated**: June 8, 2025
 **Developer**: BOOM! Studio (formerly 灰烬重生工作室)
 
-This game does **not** collect or store any user data.
-It is fully offline, contains **no ads**, and does not access sensitive permissions.
+This game does **not** collect, store, or process any personal information (including but not limited to name, contact details, device info, etc.).
+It does **not** collect or upload any user data.
+It does **not** connect to the internet or access any servers.
+It does **not** request sensitive permissions such as photos, contacts, camera, or microphone.
+No logs or files that can identify users are generated during local gameplay.
+All resources run offline, with **no ads** and **no commercial activity**.
+
+If future versions require network access or permission changes, users will be clearly informed before any update.
 
 We are committed to respecting user privacy.
 
