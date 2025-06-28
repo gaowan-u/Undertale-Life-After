@@ -1,4 +1,6 @@
 # intro_animation.py
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module='pygame.pkgdata')
 import pygame
 import sys
 import os
@@ -82,7 +84,7 @@ def play():
 
     running = True
     all_images_shown = False
-    end_time = None  # 记录所有图片显示完成的时间
+    end_time = 0  # 记录所有图片显示完成的时间
     resources_released = False  # 记录资源是否已释放
 
     try:
@@ -157,7 +159,7 @@ def play():
         pygame.quit()
 
     except Exception as e:
-        print("你的程序貌似出现了一点问题，程序终止！这是错误问题："+e)
+        print("你的程序貌似出现了一点问题，程序终止！这是错误问题：", e)
         sys.exit()
         pygame.quit()
     finally:
