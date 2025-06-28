@@ -1,4 +1,5 @@
 # 🎮 传说之下：劫后余生  
+
 **Undertale: Survival After Disaster**  
 _开发版本 v0.0.1 测试版_
 
@@ -131,10 +132,10 @@ python main.py
 
 《传说之下：劫后余生》为纯粹的粉丝项目，不含任何网络连接与数据采集行为。
 
-* 不收集或上传任何用户数据
-* 不联网、不访问服务器
-* 不请求相册、联系人、摄像头、麦克风等权限
-* 所有资源离线运行、无广告、无商业行为
+- 不收集或上传任何用户数据
+- 不联网、不访问服务器
+- 不请求相册、联系人、摄像头、麦克风等权限
+- 所有资源离线运行、无广告、无商业行为
 
 📧 如有问题可联系：**[gaowange2024@163.com](mailto:gaowange2024@163.com)**
 
@@ -164,6 +165,7 @@ We are committed to respecting user privacy.
 | 美术素材   | [CC BY-NC 4.0 创作共享](LICENSES/CC-BY-NC-4.0.txt) | [查看证书](LICENSES/CC-BY-NC-4.0.txt) |
 
 > 📌 **授权说明**
+>
 > - MIT 许可证：允许自由使用、修改和分发代码（禁止商业用途）
 > - SIL OFL：保障字体作品的自由使用和衍生开发
 > - CC BY-NC 4.0：要求署名且禁止商业使用
@@ -174,9 +176,9 @@ We are committed to respecting user privacy.
 
 欢迎任何形式的参与：
 
-* 报错 / 提建议 → Issues
-* 优化剧情 / 玩法 → Pull Requests
-* 提供音乐、美术、剧本 → BOOM! Studio
+- 报错 / 提建议 → Issues
+- 优化剧情 / 玩法 → Pull Requests
+- 提供音乐、美术、剧本 → BOOM! Studio
 
 ---
 
@@ -184,15 +186,15 @@ We are committed to respecting user privacy.
 
 1. **原作版权**  
    本游戏《传说之下：劫后余生》中涉及的《Undertale》原作角色、世界观、剧情核心元素等知识产权，均归 **Toby Fox** 及其关联方所有。  
-   *Undertale™ is a registered trademark of Toby Fox. All original Undertale content copyright © Toby Fox.*
+   _Undertale™ is a registered trademark of Toby Fox. All original Undertale content copyright © Toby Fox._
 
 2. **衍生内容版权**  
    本项目的 **新增剧情、原创角色、独立美术/音频素材、程序代码** 等衍生内容，版权归 **BOOM! Studio** 所有。  
-   *© 2025 BOOM! Studio. All derivative works licensed under [CC BY-NC 4.0](LICENSES/CC-BY-NC-4.0.txt) (non-commercial).*
+   _© 2025 BOOM! Studio. All derivative works licensed under [CC BY-NC 4.0](LICENSES/CC-BY-NC-4.0.txt) (non-commercial)._
 
 3. **粉丝项目性质**  
    本项目为非盈利性粉丝创作，与 Toby Fox 官方无任何隶属、授权或合作关系。  
-   *This is an unofficial fan project, not endorsed by the original copyright holder.*
+   _This is an unofficial fan project, not endorsed by the original copyright holder._
 
 ---
 
