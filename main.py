@@ -2,49 +2,46 @@
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module='pygame.pkgdata')
 import pygame
-from intro_animation import play
-from intro_animation import screen
+from intro_animation import play, screen_width, screen_height  # 只导入必要内容
 
-
-def run_game():
-    print("游戏开始......")  # 游戏主循环开始，后续会在这里处理所有核心玩法和界面
-    # Start the main game loop. All core gameplay and UI logic will go here.
+def run_game(screen):  # 添加screen参数
+    print("游戏开始......")  # Game started
     clock = pygame.time.Clock()
     running = True
     
     try:
         while running:
+            # 事件处理 / Event handling
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    running = False  # 用户点击关闭窗口，安全退出
-                    # User clicked the window close button, exit safely.
+                    running = False
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        running = False  # 按下ESC键，退出游戏
-                        # Press ESC to exit the game.
+                        running = False
 
-            # 主游戏渲染逻辑，每帧刷新画面
-            # Main game rendering logic, refresh the screen every frame
+            # 主渲染 / Main rendering
             screen.fill((0, 0, 0))
             pygame.display.flip()
-            clock.tick(60)  # 控制帧率为60FPS / Limit to 60 FPS
+            clock.tick(60)  # 60FPS
     except KeyboardInterrupt:
-        print("\n检测到Ctrl+C中断，退出游戏...")  # 支持命令行强制退出
-        # Support for Ctrl+C exit in terminal
-        running = False
+        print("\n检测到Ctrl+C中断，退出游戏...")  # Ctrl+C detected
 
 
 def main():
-    pygame.init()  # 初始化Pygame库 / Initialize Pygame
-    pygame.mixer.init()  # 初始化音频模块 / Initialize audio
+    pygame.init()  # 初始化 / Initialize
+    pygame.mixer.init()
+    
+    # 在main.py中创建screen
+    screen = pygame.display.set_mode((screen_width, screen_height))
+    pygame.display.set_caption("传说之下-劫后余生")
     
     try:
-        if play():
-            run_game()  # 运行主游戏 / Start the main game
+        if play(screen):  # 将screen传入动画函数
+            run_game(screen)  # 将screen传入主游戏循环
     except KeyboardInterrupt:
-        print("\n检测到Ctrl+C中断，退出游戏...")  # 支持命令行强制退出
+        print("\n检测到Ctrl+C中断，退出游戏...")  # Ctrl+C detected
     finally:
-        pygame.quit()  # 退出Pygame，释放所有资源 / Quit Pygame and release resources
+        pygame.quit()  # 退出 / Quit
 
 if __name__ == "__main__":
-    main()  # 程序入口 / Program entry point
+    main()  # 程序入口 / Entry point
