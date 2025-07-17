@@ -1,5 +1,31 @@
-__pycache__
-*.log
-*.tmp
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Env
+venv/
+.venv/
+env/
+.env
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
 *.exe
 *.apk
+
+# Log and temp files
+*.log
+*.tmp
+
+# IDE / Editor specific
+.vscode/
+.idea/
+*.sublime-*
+
+# OS-specific
+.DS_Store
+Thumbs.db
