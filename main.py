@@ -53,7 +53,7 @@ def main():
                     if action == "start_game":
                         game_state = 'gameplay'
                     elif action == "open_settings":
-                        print("设置功能尚未实现")
+                        pass # 这里可以添加设置菜单逻辑 但考虑到后面素材可能会提交，先不写，而且还得画摇杆和按钮。😢
                     elif action == "exit":
                         running = False
                 elif game_state == 'gameplay':
@@ -72,7 +72,7 @@ def main():
                 # 绘制游戏场景
                 gameplay_surface.fill((20, 20, 30)) # 深蓝色背景
                 font = pygame.font.Font("fonts/NotoSansSC-Regular.ttf", 36)
-                text = font.render("游戏进行中... 按 ESC 暂停", True, (255, 255, 255))
+                text = font.render("游戏进行中... 按 ESC 暂停", True, (255, 255, 255)) #当时在电脑上编写，蠢了，手机上玩这个得全屏，以后搞个按钮算了，😅。
                 text_rect = text.get_rect(center=(screen_width/2, screen_height/2))
                 gameplay_surface.blit(text, text_rect)
                 screen.blit(gameplay_surface, (0,0))
