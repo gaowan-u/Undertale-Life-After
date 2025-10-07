@@ -1,14 +1,17 @@
+from main_menu import MainMenu
+from intro_animation import play as play_intro, screen_width, screen_height
+from gameplay import gameplay
 import pygame
 import sys
 import warnings
 import math
 
 # 忽略Pygame的社区警告
-warnings.filterwarnings("ignore", category=UserWarning, module='pygame.pkgdata')
+warnings.filterwarnings("ignore", category=UserWarning,
+                        module='pygame.pkgdata')
 
 # 导入其他模块
-from intro_animation import play as play_intro, screen_width, screen_height
-from main_menu import MainMenu
+
 
 def main():
     # --- 初始化 ---
@@ -22,10 +25,10 @@ def main():
     game_state = 'intro'
     main_menu = MainMenu(screen)
     disclaimer_start_time = -1
-    
+
     # 用于在暂停时保留游戏画面
     gameplay_surface = pygame.Surface((screen_width, screen_height))
-    gameplay_surface.fill((20, 20, 30)) # 默认游戏背景
+    gameplay_surface.fill((0, 0, 0))  # 默认游戏背景
 
     # --- 版权声明内容 ---
     disclaimer_font = pygame.font.Font("fonts/NotoSansSC-Regular.ttf", 24)
@@ -53,7 +56,7 @@ def main():
                     if action == "start_game":
                         game_state = 'gameplay'
                     elif action == "open_settings":
-                        pass # 这里可以添加设置菜单逻辑 但考虑到后面素材可能会提交，先不写，而且还得画摇杆和按钮。😢
+                        pass  # 这里可以添加设置菜单逻辑 但考虑到后面素材可能会提交，先不写，而且还得画摇杆和按钮。😢
                     elif action == "exit":
                         running = False
                 elif game_state == 'gameplay':
@@ -65,17 +68,15 @@ def main():
                 if play_intro(screen):
                     game_state = 'disclaimer'
                     disclaimer_start_time = pygame.time.get_ticks()
-            
+            elif game_state == 'gameplay':
+                gameplay_surface = gameplay(events)
+
             # --- 渲染 ---
             # 1. 绘制基础背景
             if game_state == 'gameplay':
                 # 绘制游戏场景
-                gameplay_surface.fill((20, 20, 30)) # 深蓝色背景
-                font = pygame.font.Font("fonts/NotoSansSC-Regular.ttf", 36)
-                text = font.render("游戏进行中... 按 ESC 暂停", True, (255, 255, 255)) #当时在电脑上编写，蠢了，手机上玩这个得全屏，以后搞个按钮算了，😅。
-                text_rect = text.get_rect(center=(screen_width/2, screen_height/2))
-                gameplay_surface.blit(text, text_rect)
-                screen.blit(gameplay_surface, (0,0))
+                screen.blit(gameplay_surface, (0, 0))
+
             else:
                 # 对于 intro, disclaimer, menu-before-game, 背景是纯黑
                 screen.fill((0, 0, 0))
@@ -95,7 +96,7 @@ def main():
                         phase, progress = 'exit', (elapsed - 4000) / 1000
 
                     base_y, target_y = screen_height + 80, screen_height - 160
-                    
+
                     if phase == 'enter':
                         y_pos = base_y - (base_y - target_y) * (progress**0.7)
                         alpha = int(255 * progress)
@@ -108,12 +109,15 @@ def main():
 
                     y_offset = int(y_pos)
                     for line in disclaimer_text:
-                        text_surf = disclaimer_font.render(line, True, (230, 230, 230))
-                        alpha_surf = pygame.Surface(text_surf.get_size(), pygame.SRCALPHA)
+                        text_surf = disclaimer_font.render(
+                            line, True, (230, 230, 230))
+                        alpha_surf = pygame.Surface(
+                            text_surf.get_size(), pygame.SRCALPHA)
                         alpha_surf.blit(text_surf, (0, 0))
                         alpha_surf.set_alpha(alpha)
-                        
-                        shadow_surf = disclaimer_font.render(line, True, (0,0,0))
+
+                        shadow_surf = disclaimer_font.render(
+                            line, True, (0, 0, 0))
                         shadow_surf.set_alpha(alpha * 0.6)
                         screen.blit(shadow_surf, (22, y_offset + 2))
                         screen.blit(alpha_surf, (20, y_offset))
@@ -132,6 +136,7 @@ def main():
     finally:
         pygame.quit()
         sys.exit()
+
 
 if __name__ == "__main__":
     main()
