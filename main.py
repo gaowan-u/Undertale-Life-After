@@ -40,6 +40,23 @@ def main():
         "美术资源遵循CC BY-NC 4.0协议"
     ]
 
+    # 预渲染文本表面（性能优化）
+    disclaimer_text_surfaces = []
+    disclaimer_shadow_surfaces = []
+    for line in disclaimer_text:
+        text_surf = disclaimer_font.render(line, True, (230, 230, 230))
+        shadow_surf = disclaimer_font.render(line, True, (0, 0, 0))
+
+        # 预转换为带透明度的surface
+        text_alpha = pygame.Surface(text_surf.get_size(), pygame.SRCALPHA)
+        text_alpha.blit(text_surf, (0, 0))
+
+        shadow_alpha = pygame.Surface(shadow_surf.get_size(), pygame.SRCALPHA)
+        shadow_alpha.blit(shadow_surf, (0, 0))
+
+        disclaimer_text_surfaces.append(text_alpha)
+        disclaimer_shadow_surfaces.append(shadow_alpha)
+
     # 游戏主循环
     running = True
     try:
@@ -56,7 +73,7 @@ def main():
                     if action == "start_game":
                         game_state = 'gameplay'
                     elif action == "open_settings":
-                        pass  # 这里可以添加设置菜单逻辑 但考虑到后面素材可能会提交，先不写，而且还得画摇杆和按钮。😢
+                        pass  # 这里可以添加设置菜单逻辑 但考虑到后面素材可能会提交，先不写，而且还得画摇杆和按钮。😰
                     elif action == "exit":
                         running = False
                 elif game_state == 'gameplay':
@@ -76,7 +93,6 @@ def main():
             if game_state == 'gameplay':
                 # 绘制游戏场景
                 screen.blit(gameplay_surface, (0, 0))
-
             else:
                 # 对于 intro, disclaimer, menu-before-game, 背景是纯黑
                 screen.fill((0, 0, 0))
@@ -87,40 +103,37 @@ def main():
                 if elapsed >= 5000:
                     game_state = 'main_menu'
                 else:
-                    # 版权声明动画
+                    # 版权声明动画（优化版）
                     if elapsed < 1000:
-                        phase, progress = 'enter', elapsed / 1000
-                    elif elapsed < 4000:
-                        phase, progress = 'hold', (elapsed - 1000) / 3000
-                    else:
-                        phase, progress = 'exit', (elapsed - 4000) / 1000
-
-                    base_y, target_y = screen_height + 80, screen_height - 160
-
-                    if phase == 'enter':
-                        y_pos = base_y - (base_y - target_y) * (progress**0.7)
+                        progress = elapsed / 1000
+                        # 缓动函数：easeOutCubic
+                        progress = 1 - (1 - progress) ** 3
+                        y_pos = screen_height + 80 - \
+                            (screen_height + 80 - (screen_height - 160)) * progress
                         alpha = int(255 * progress)
-                    elif phase == 'exit':
-                        y_pos = target_y - 100 * progress
-                        alpha = int(255 * (1 - progress))
-                    else:
-                        y_pos = target_y + 5 * math.sin(progress * 2 * math.pi)
+                    elif elapsed < 4000:
+                        progress = (elapsed - 1000) / 3000
+                        y_pos = screen_height - 160 + 5 * \
+                            math.sin(progress * 2 * math.pi)
                         alpha = 255
+                    else:
+                        progress = (elapsed - 4000) / 1000
+                        # 缓动函数：easeInCubic
+                        progress = progress ** 3
+                        y_pos = (screen_height - 160) - 100 * progress
+                        alpha = int(255 * (1 - progress))
 
+                    # 批量设置透明度并绘制（性能优化）
                     y_offset = int(y_pos)
-                    for line in disclaimer_text:
-                        text_surf = disclaimer_font.render(
-                            line, True, (230, 230, 230))
-                        alpha_surf = pygame.Surface(
-                            text_surf.get_size(), pygame.SRCALPHA)
-                        alpha_surf.blit(text_surf, (0, 0))
-                        alpha_surf.set_alpha(alpha)
+                    for i in range(len(disclaimer_text)):
+                        text_surf = disclaimer_text_surfaces[i]
+                        shadow_surf = disclaimer_shadow_surfaces[i]
 
-                        shadow_surf = disclaimer_font.render(
-                            line, True, (0, 0, 0))
-                        shadow_surf.set_alpha(alpha * 0.6)
+                        text_surf.set_alpha(alpha)
+                        shadow_surf.set_alpha(int(alpha * 0.6))
+
                         screen.blit(shadow_surf, (22, y_offset + 2))
-                        screen.blit(alpha_surf, (20, y_offset))
+                        screen.blit(text_surf, (20, y_offset))
                         y_offset += 32
 
             elif game_state == 'main_menu':
@@ -140,3 +153,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

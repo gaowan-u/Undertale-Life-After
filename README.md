@@ -81,7 +81,7 @@ cd Undertale-Life-After
 ### 🚀 第五步：运行游戏
 
 ```bash
-termux-x11 &
+termux-x11 -nocursor -br -iglx -noreset -ac > /dev/null 2>&1 &
 python main.py
 ```
 
