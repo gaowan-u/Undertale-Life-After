@@ -2,7 +2,7 @@ import pygame
 from intro_animation import screen_height, screen_width
 import math
 
-# --- 1. 资源加载 (无变动) ---
+# --- 1. 资源加载  ---
 try:
     IMAGE_ASSETS = {
         'background': pygame.image.load("./images/出生点.png"),
@@ -26,7 +26,7 @@ except pygame.error as e:
     print(f"致命错误: 加载图片资源失败: {e}")
     IMAGE_ASSETS = {}
 
-# --- 2. 摇杆初始化 (无变动) ---
+# --- 2. 摇杆初始化 ---
 gameplay_surface = pygame.Surface((screen_width, screen_height))
 joystick_base_img = IMAGE_ASSETS.get('cropped_joystick_base')
 joystick_top_img = IMAGE_ASSETS.get('cropped_joystick_top')
@@ -49,7 +49,7 @@ player_speed = 25
 ANIMATION_FRAME_DURATION = 80
 
 
-# --- 4. 动画系统初始化 (无变动) ---
+# --- 4. 动画系统初始化 ---
 animation_timer, animation_index = 0, 0
 ANIMATION_SEQUENCES = {
     'down':  ['frisk_stand_down', 'frisk_walk_down_r', 'frisk_stand_down', 'frisk_walk_down_l'],
@@ -58,7 +58,7 @@ ANIMATION_SEQUENCES = {
     'right': ['frisk_stand_right', 'frisk_walk_right', 'frisk_stand_right', 'frisk_walk_right']
 }
 
-# --- 5. 函数定义 (无变动) ---
+# --- 5. 函数定义  ---
 def update_joystick_position(mouse_pos):
     global joystick_direction
     dx = mouse_pos[0] - joystick_base_rect.centerx; dy = mouse_pos[1] - joystick_base_rect.centery
@@ -87,11 +87,11 @@ def gameplay(events):
     handle_joystick_events(events)
     if joystick_dragging: update_joystick_position(pygame.mouse.get_pos())
 
-    # --- 玩家逻辑更新 (核心修正) ---
+    # --- 玩家逻辑更新  ---
     dx, dy = joystick_direction
     is_joystick_pushed = abs(dx) > 0.1 or abs(dy) > 0.1
 
-    # <<< 核心修正 1: 更新朝向（Turn）>>>
+    # <<< 更新朝向（Turn）>>>
     # 只要摇杆被推动（有输入意图），就立刻更新角色朝向。
     if is_joystick_pushed:
         if abs(dx) > abs(dy):
@@ -99,7 +99,7 @@ def gameplay(events):
         else:
             player_direction = 'down' if dy > 0 else 'up'
 
-    # <<< 核心修正 2: 更新位移和动画（Move）>>>
+    # <<< 更新位移和动画（Move）>>>
     # 只有当摇杆被推动时，才发生位置移动，并播放行走动画。
     if is_joystick_pushed:
         # 移动逻辑盒子
@@ -115,7 +115,7 @@ def gameplay(events):
         # 如果摇杆没有被推动，则动画重置为站立姿势（第0帧）
         animation_index = 0
 
-    # --- 绘制 (无变动) ---
+    # --- 绘制  ---
     gameplay_surface.blit(IMAGE_ASSETS['background'], (0, 0))
     
     current_sprite_key = ANIMATION_SEQUENCES[player_direction][animation_index]
