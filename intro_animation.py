@@ -83,6 +83,7 @@ def play(screen):  # 添加screen参数
     all_images_shown = False
     end_time = 0
     resources_released = False
+    skipped = False  # 新增：标记是否被跳过
 
     try:
         # 显示初始图片 / Show initial image
@@ -103,9 +104,18 @@ def play(screen):  # 添加screen参数
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                    # 修复：退出时也返回True，确保主循环能正常结束
+                    return True
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
+                        # 修复：按下ESC时标记为跳过，并返回True
                         running = False
+                        skipped = True
+                        break
+
+            # 如果被跳过，直接结束
+            if skipped:
+                break
 
             # 图像切换逻辑 / Image switching logic
             if not all_images_shown:
@@ -156,5 +166,12 @@ def play(screen):  # 添加screen参数
         sys.exit()
         pygame.quit()
     finally:
+        # 修复：确保资源被释放，并且如果被跳过也返回True
         images = None
         audio.stop()
+        # 如果是因为跳过而退出，返回True
+        if skipped:
+            return True
+    
+    # 默认返回False，只有正常播放完成或被跳过时才返回True
+    return False

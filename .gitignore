@@ -29,3 +29,8 @@ dist/
 # OS-specific
 .DS_Store
 Thumbs.db
+
+# Gemini summary file
+GEMINI.md
+# iFlow CLI summary file
+IFLOW.md

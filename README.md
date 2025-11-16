@@ -1,5 +1,10 @@
 # 🎮 传说之下：劫后余生  
 
+**重要信息**
+
+项目更新：
+1. 优化了开场动画的退出逻辑，确保按下ESC键能正确跳过动画
+
 **Undertale: Survival After Disaster**  
 _开发版本 v0.0.1-beta_
 
