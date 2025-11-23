@@ -61,31 +61,39 @@ ANIMATION_SEQUENCES = {
 # --- 5. 函数定义  ---
 def update_joystick_position(mouse_pos):
     global joystick_direction
-    dx = mouse_pos[0] - joystick_base_rect.centerx; dy = mouse_pos[1] - joystick_base_rect.centery
+    dx = mouse_pos[0] - joystick_base_rect.centerx
+    dy = mouse_pos[1] - joystick_base_rect.centery
     distance = math.hypot(dx, dy)
     if distance > joystick_radius:
-        ratio = joystick_radius / distance; dx *= ratio; dy *= ratio
+        ratio = joystick_radius / distance
+        dx *= ratio
+        dy *= ratio
     joystick_top_rect.centerx = joystick_base_rect.centerx + dx
     joystick_top_rect.centery = joystick_base_rect.centery + dy
     joystick_direction = (dx / joystick_radius, dy / joystick_radius) if distance > 10 else (0, 0)
 
 def reset_joystick():
     global joystick_direction
-    joystick_top_rect.center = joystick_base_rect.center; joystick_direction = (0, 0)
+    joystick_top_rect.center = joystick_base_rect.center
+    joystick_direction = (0, 0)
 
 def handle_joystick_events(events):
     global joystick_dragging
     for event in events:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if joystick_top_rect.collidepoint(event.pos): joystick_dragging = True
+            if joystick_top_rect.collidepoint(event.pos):
+                joystick_dragging = True
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            if joystick_dragging: joystick_dragging = False; reset_joystick()
+            if joystick_dragging:
+                joystick_dragging = False
+                reset_joystick()
 
 # --- 6. 主循环逻辑 ---
 def gameplay(events):
     global player_direction, animation_timer, animation_index
     handle_joystick_events(events)
-    if joystick_dragging: update_joystick_position(pygame.mouse.get_pos())
+    if joystick_dragging:
+        update_joystick_position(pygame.mouse.get_pos())
 
     # --- 玩家逻辑更新  ---
     dx, dy = joystick_direction
