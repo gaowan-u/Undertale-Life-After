@@ -29,7 +29,7 @@ except pygame.error as e:
     print(f"致命错误: 加载图片资源失败: {e}")
     IMAGE_ASSETS = {}
 
-# --- 2. 摇杆初始化 ---
+# --- 2. 摇杆和键盘控制初始化 ---
 gameplay_surface = pygame.Surface((screen_width, screen_height))
 joystick_base_img = IMAGE_ASSETS.get('cropped_joystick_base')
 joystick_top_img = IMAGE_ASSETS.get('cropped_joystick_top')
@@ -41,6 +41,19 @@ else:
 joystick_dragging = False
 joystick_radius = joystick_base_rect.width / 2 * 0.9
 joystick_direction = (0, 0)
+
+# --- 键盘控制状态 ---
+keyboard_direction = (0, 0)
+keyboard_keys = {
+    pygame.K_UP: (0, -1),
+    pygame.K_DOWN: (0, 1),
+    pygame.K_LEFT: (-1, 0),
+    pygame.K_RIGHT: (1, 0),
+    pygame.K_w: (0, -1),
+    pygame.K_s: (0, 1),
+    pygame.K_a: (-1, 0),
+    pygame.K_d: (1, 0)
+}
 
 # --- 3. 玩家状态初始化 ---
 player_start_topleft = (862, 561) 
@@ -71,10 +84,17 @@ button_1_state = 0
 button_2_state = 0  
 button_3_state = 0
 
-# 记录按钮是否正在被按下
+# 记录按钮是否正在被按下（鼠标和键盘）
 button_1_pressed = False
 button_2_pressed = False  
 button_3_pressed = False
+
+# 键盘按键映射
+keyboard_button_mapping = {
+    pygame.K_z: 1,  # Z键对应按钮1
+    pygame.K_x: 2,  # X键对应按钮2
+    pygame.K_c: 3   # C键对应按钮3
+}
 
 # --- 6. 函数定义  ---
 def update_joystick_position(mouse_pos):
@@ -105,6 +125,33 @@ def handle_joystick_events(events):
             if joystick_dragging:
                 joystick_dragging = False
                 reset_joystick()
+
+def handle_keyboard_events(events):
+    global keyboard_direction
+    keys_pressed = pygame.key.get_pressed()
+    
+    # 重置键盘方向
+    keyboard_direction = (0, 0)
+    
+    # 检查方向键状态
+    dx, dy = 0, 0
+    if keys_pressed[pygame.K_LEFT] or keys_pressed[pygame.K_a]:
+        dx -= 1
+    if keys_pressed[pygame.K_RIGHT] or keys_pressed[pygame.K_d]:
+        dx += 1
+    if keys_pressed[pygame.K_UP] or keys_pressed[pygame.K_w]:
+        dy -= 1
+    if keys_pressed[pygame.K_DOWN] or keys_pressed[pygame.K_s]:
+        dy += 1
+    
+    # 处理8个方向（包括对角线）
+    if dx != 0 or dy != 0:
+        # 归一化对角线方向，确保移动速度一致
+        if dx != 0 and dy != 0:
+            length = (dx * dx + dy * dy) ** 0.5
+            dx /= length
+            dy /= length
+        keyboard_direction = (dx, dy)
 
 def handle_button_events(events):
     global button_1_state, button_2_state, button_3_state
@@ -145,6 +192,35 @@ def handle_button_events(events):
                 button_3_pressed = False
                 print("按钮3被松开")  # 调试信息
 
+        # 键盘按键事件处理
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_z:
+                button_1_state = 1
+                button_1_pressed = True
+                print("按钮1被按下 (Z键)")
+            elif event.key == pygame.K_x:
+                button_2_state = 1
+                button_2_pressed = True
+                print("按钮2被按下 (X键)")
+            elif event.key == pygame.K_c:
+                button_3_state = 1
+                button_3_pressed = True
+                print("按钮3被按下 (C键)")
+                
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_z:
+                button_1_state = 0
+                button_1_pressed = False
+                print("按钮1被松开 (Z键)")
+            elif event.key == pygame.K_x:
+                button_2_state = 0
+                button_2_pressed = False
+                print("按钮2被松开 (X键)")
+            elif event.key == pygame.K_c:
+                button_3_state = 0
+                button_3_pressed = False
+                print("按钮3被松开 (C键)")
+
 def update_button_states():
     # 这个函数现在不需要做任何事情，因为状态已经在事件处理中即时更新
     pass
@@ -175,6 +251,7 @@ def gameplay(events):
     # 处理输入事件
     handle_joystick_events(events)
     handle_button_events(events)
+    handle_keyboard_events(events)
     
     # 更新状态
     if joystick_dragging:
@@ -183,20 +260,29 @@ def gameplay(events):
     update_button_states()
 
     # --- 玩家逻辑更新  ---
-    dx, dy = joystick_direction
-    is_joystick_pushed = abs(dx) > 0.1 or abs(dy) > 0.1
+    # 合并摇杆和键盘输入
+    joystick_dx, joystick_dy = joystick_direction
+    keyboard_dx, keyboard_dy = keyboard_direction
+    
+    # 优先使用键盘输入，如果没有键盘输入则使用摇杆输入
+    if abs(keyboard_dx) > 0.1 or abs(keyboard_dy) > 0.1:
+        dx, dy = keyboard_dx, keyboard_dy
+        is_input_active = True
+    else:
+        dx, dy = joystick_dx, joystick_dy
+        is_input_active = abs(dx) > 0.1 or abs(dy) > 0.1
 
     # <<< 更新朝向（Turn）>>>
-    # 只要摇杆被推动（有输入意图），就立刻更新角色朝向。
-    if is_joystick_pushed:
+    # 只要有输入意图（键盘或摇杆），就立刻更新角色朝向。
+    if is_input_active:
         if abs(dx) > abs(dy):
             player_direction = 'right' if dx > 0 else 'left'
         else:
             player_direction = 'down' if dy > 0 else 'up'
 
     # <<< 更新位移和动画（Move）>>>
-    # 只有当摇杆被推动时，才发生位置移动，并播放行走动画。
-    if is_joystick_pushed:
+    # 只有当有输入时，才发生位置移动，并播放行走动画。
+    if is_input_active:
         # 移动逻辑盒子
         player_logical_rect.x += dx * player_speed
         player_logical_rect.y += dy * player_speed
@@ -207,7 +293,7 @@ def gameplay(events):
             animation_timer = current_time
             animation_index = (animation_index + 1) % len(ANIMATION_SEQUENCES[player_direction])
     else:
-        # 如果摇杆没有被推动，则动画重置为站立姿势（第0帧）
+        # 如果没有输入，则动画重置为站立姿势（第0帧）
         animation_index = 0
 
     # --- 绘制  ---
