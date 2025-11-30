@@ -60,15 +60,17 @@ def load_resources():
 
     try:
         sound = pygame.mixer.Sound(audio_path)
+        audio_available = True
     except pygame.error:
-        print(f"错误: 无法加载音频: {audio_path}")  # Error: cannot load audio
-        sys.exit(1)
+        print(f"警告: 无法加载音频: {audio_path}，将在静音模式下播放开场动画")
+        sound = None
+        audio_available = False
 
-    return first_image, images, sound
+    return first_image, images, sound, audio_available
 
 
 def play(screen):  # 添加screen参数
-    first_image, images, audio = load_resources()
+    first_image, images, audio, audio_available = load_resources()
     current_image_index = 0
     last_change_time = time.time()
 
@@ -93,7 +95,8 @@ def play(screen):  # 添加screen参数
         time.sleep(2)
 
         # 播放音频 / Play audio
-        audio.play()
+        if audio_available and audio:
+            audio.play()
         start_time = time.time()
 
         while running:
@@ -143,7 +146,8 @@ def play(screen):  # 添加screen参数
                 if current_time - end_time > 5.0:
                     if not resources_released:
                         images = None
-                        audio.stop()
+                        if audio_available and audio:
+                            audio.stop()
                         resources_released = True
                         return True
                 else:

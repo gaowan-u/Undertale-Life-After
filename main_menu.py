@@ -19,7 +19,7 @@ class MainMenu:
         self.item_font = pygame.font.Font(font_path, 48)
 
         # 菜单项和状态
-        self.menu_items = ["开始游戏", "设置", "退出"]
+        self.menu_items = ["开始游戏", "加载游戏", "设置", "退出"]
         self.selected_index = -1  # -1 表示没有选中任何项
 
         # 颜色
@@ -68,8 +68,10 @@ class MainMenu:
                 if self.selected_index == 0:
                     return "start_game"
                 elif self.selected_index == 1:
-                    return "open_settings"
+                    return "load_game"
                 elif self.selected_index == 2:
+                    return "open_settings"
+                elif self.selected_index == 3:
                     return "exit"
 
         # 响应ESC键，用于关闭菜单返回游戏

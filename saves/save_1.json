@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "version": "0.0.1",
+    "created_at": "2025-11-30 08:37:21",
+    "last_played": "2025-11-30 08:37:21",
+    "play_time": 0
+  },
+  "player": {
+    "name": "测试玩家",
+    "level": 1,
+    "health": 20,
+    "max_health": 20,
+    "attack": 10,
+    "defense": 10,
+    "gold": 0,
+    "items": [],
+    "equipment": {}
+  },
+  "progress": {
+    "current_chapter": 1,
+    "current_scene": "坠落遗迹",
+    "completed_chapters": [],
+    "unlocked_areas": [
+      "坠落遗迹"
+    ],
+    "story_flags": {},
+    "choices": {}
+  },
+  "position": {
+    "x": 862,
+    "y": 561,
+    "direction": "down"
+  },
+  "settings": {
+    "music_volume": 0.7,
+    "sfx_volume": 0.8,
+    "language": "zh-CN",
+    "controls": "keyboard"
+  }
+}

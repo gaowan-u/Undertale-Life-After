@@ -1,6 +1,8 @@
 from main_menu import MainMenu
 from intro_animation import play as play_intro, screen_width, screen_height
 from gameplay import gameplay
+from save_system import save_system
+from save_menu import SaveMenu
 import pygame
 import sys
 import warnings
@@ -16,7 +18,12 @@ warnings.filterwarnings("ignore", category=UserWarning,
 def main():
     # --- 初始化 ---
     pygame.init()
-    pygame.mixer.init()
+    try:
+        pygame.mixer.init()
+        audio_available = True
+    except pygame.error:
+        print("警告: 音频设备不可用，游戏将在静音模式下运行")
+        audio_available = False
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("传说之下-劫后余生")
     clock = pygame.time.Clock()
@@ -24,6 +31,7 @@ def main():
     # --- 游戏状态和组件 ---
     game_state = 'intro'
     main_menu = MainMenu(screen)
+    save_menu = SaveMenu(screen)
     disclaimer_start_time = -1
 
     # 用于在暂停时保留游戏画面
@@ -72,10 +80,24 @@ def main():
                     action = main_menu.handle_event(event)
                     if action == "start_game":
                         game_state = 'gameplay'
+                    elif action == "load_game":
+                        game_state = 'save_menu'
                     elif action == "open_settings":
                         pass  # 这里可以添加设置菜单逻辑 但考虑到后面素材可能会提交，先不写，而且还得画摇杆和按钮。😰
                     elif action == "exit":
                         running = False
+                elif game_state == 'save_menu':
+                    action = save_menu.handle_event(event)
+                    if action == "back":
+                        game_state = 'main_menu'
+                    elif action == "load_save":
+                        # 加载存档并开始游戏
+                        loaded_data = save_system.load_save(save_menu.selected_slot)
+                        if loaded_data:
+                            print(f"加载存档 {save_menu.selected_slot}: {loaded_data['player']['name']}")
+                            game_state = 'gameplay'
+                        else:
+                            print("存档加载失败")
                 elif game_state == 'gameplay':
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                         game_state = 'main_menu'
@@ -139,6 +161,9 @@ def main():
             elif game_state == 'main_menu':
                 # 菜单会自己绘制半透明背景，所以它会叠加在当前画面上
                 main_menu.draw()
+            elif game_state == 'save_menu':
+                # 存档菜单会自己绘制半透明背景
+                save_menu.draw()
 
             # --- 更新屏幕 ---
             pygame.display.flip()
@@ -153,4 +178,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
