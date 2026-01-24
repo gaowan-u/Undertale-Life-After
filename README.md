@@ -1,4 +1,4 @@
-# 🎮 传说之下：劫后余生  
+# 🎮 传说之下：劫后余生
 
 ## 重要信息
 
@@ -16,11 +16,12 @@
 
 6. 添加存档菜单界面，支持创建、加载和删除存档功能
 
-7. 优化音频系统，在音频设备不可用时自动切换到静音模式
+7. 优化音频系统，在音频设备不可用时退出并提供提示
 
 8. 改进主菜单，增加"加载游戏"选项和存档系统整合
 
-**Undertale: Survival After Disaster**  
+9. 改变了一下加载游戏的背景，使其更美观
+**Undertale: Survival After Disaster**_
 _开发版本 v0.0.1-beta_
 
 📁 本项目中的素材目录均已包含 `.nomedia` 文件，防止出现在用户图库或播放器中，保护沉浸体验。
@@ -30,8 +31,8 @@ _开发版本 v0.0.1-beta_
 
 ## 🧭 项目简介
 
-《传说之下：劫后余生》是一款基于 Toby Fox 原作《Undertale》世界观制作的粉丝向剧情游戏。  
-游戏继承了原作的独特战斗系统与叙事风格，讲述在一个全新地下世界展开的生还冒险。  
+《传说之下：劫后余生》是一款基于 Toby Fox 原作《Undertale》世界观制作的粉丝向剧情游戏。
+游戏继承了原作的独特战斗系统与叙事风格，讲述在一个全新地下世界展开的生还冒险。
 
 由 **BOOM! Studio（原 灰烬重生工作室）** 制作，项目完全开源，面向所有热爱 Undertale 的玩家与开发者。
 
@@ -270,16 +271,16 @@ We are committed to respecting user privacy.
 
 ## ⚖️ 版权声明
 
-1. **原作版权**  
-   本游戏《传说之下：劫后余生》中涉及的《Undertale》原作角色、世界观、剧情核心元素等知识产权，均归 **Toby Fox** 及其关联方所有。  
+1. **原作版权**
+   本游戏《传说之下：劫后余生》中涉及的《Undertale》原作角色、世界观、剧情核心元素等知识产权，均归 **Toby Fox** 及其关联方所有。
    _Undertale™ is a registered trademark of Toby Fox. All original Undertale content copyright © Toby Fox._
 
-2. **衍生内容版权**  
-   本项目的 **新增剧情、原创角色、独立美术/音频素材、程序代码** 等衍生内容，版权归 **BOOM! Studio** 所有。  
+2. **衍生内容版权**
+   本项目的 **新增剧情、原创角色、独立美术/音频素材、程序代码** 等衍生内容，版权归 **BOOM! Studio** 所有。
    _© 2025 BOOM! Studio. All derivative works licensed under [CC BY-NC 4.0](LICENSES/CC-BY-NC-4.0.txt) (non-commercial)._
 
-3. **粉丝项目性质**  
-   本项目为非盈利性粉丝创作，与 Toby Fox 官方无任何隶属、授权或合作关系。  
+3. **粉丝项目性质**
+   本项目为非盈利性粉丝创作，与 Toby Fox 官方无任何隶属、授权或合作关系。
    _This is an unofficial fan project, not endorsed by the original copyright holder._
 
 ---

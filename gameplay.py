@@ -56,8 +56,8 @@ keyboard_keys = {
 }
 
 # --- 3. 玩家状态初始化 ---
-player_start_topleft = (862, 561) 
-PLAYER_LOGICAL_WIDTH, PLAYER_LOGICAL_HEIGHT = 40, 60 
+player_start_topleft = (862, 561)
+PLAYER_LOGICAL_WIDTH, PLAYER_LOGICAL_HEIGHT = 40, 60
 player_logical_rect = pygame.Rect(0, 0, PLAYER_LOGICAL_WIDTH, PLAYER_LOGICAL_HEIGHT)
 player_logical_rect.topleft = player_start_topleft
 player_direction = 'down'
@@ -78,16 +78,19 @@ ANIMATION_SEQUENCES = {
 button_1_rect = pygame.Rect(1400, screen_height - 240, IMAGE_ASSETS['cropped_button_1'].get_width(), IMAGE_ASSETS['cropped_button_1'].get_height())
 button_2_rect = pygame.Rect(1544, screen_height - 320, IMAGE_ASSETS['cropped_button_2'].get_width(), IMAGE_ASSETS['cropped_button_2'].get_height())
 button_3_rect = pygame.Rect(1688, screen_height - 400, IMAGE_ASSETS['cropped_button_3'].get_width(), IMAGE_ASSETS['cropped_button_3'].get_height())
+back_button_rect = pygame.Rect(50, 50, 120, 50)
 
 # 按钮状态：0=正常，1=按下
 button_1_state = 0
-button_2_state = 0  
+button_2_state = 0
 button_3_state = 0
+back_button_state = 0
 
 # 记录按钮是否正在被按下（鼠标和键盘）
 button_1_pressed = False
-button_2_pressed = False  
+button_2_pressed = False
 button_3_pressed = False
+back_button_pressed = False
 
 # 键盘按键映射
 keyboard_button_mapping = {
@@ -119,20 +122,26 @@ def handle_joystick_events(events):
     global joystick_dragging
     for event in events:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if joystick_top_rect.collidepoint(event.pos):
+            # 只有当点击位置在摇杆内部时才开始拖拽
+            if joystick_base_rect.collidepoint(event.pos) or joystick_top_rect.collidepoint(event.pos):
                 joystick_dragging = True
+                # 更新摇杆位置到点击位置
+                update_joystick_position(event.pos)
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             if joystick_dragging:
                 joystick_dragging = False
                 reset_joystick()
+        elif event.type == pygame.MOUSEMOTION and joystick_dragging:
+            # 只在拖拽状态下处理鼠标移动事件
+            update_joystick_position(event.pos)
 
 def handle_keyboard_events(events):
     global keyboard_direction
     keys_pressed = pygame.key.get_pressed()
-    
+
     # 重置键盘方向
     keyboard_direction = (0, 0)
-    
+
     # 检查方向键状态
     dx, dy = 0, 0
     if keys_pressed[pygame.K_LEFT] or keys_pressed[pygame.K_a]:
@@ -143,7 +152,7 @@ def handle_keyboard_events(events):
         dy -= 1
     if keys_pressed[pygame.K_DOWN] or keys_pressed[pygame.K_s]:
         dy += 1
-    
+
     # 处理8个方向（包括对角线）
     if dx != 0 or dy != 0:
         # 归一化对角线方向，确保移动速度一致
@@ -156,42 +165,47 @@ def handle_keyboard_events(events):
 def handle_button_events(events):
     global button_1_state, button_2_state, button_3_state
     global button_1_pressed, button_2_pressed, button_3_pressed
-    
+    global back_button_pressed
     for event in events:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            # 检查哪个按钮被按下
+            mouse_pos = event.pos
+            # 检查哪个按钮被按下，即使在摇杆拖拽时也要能处理按钮事件
+            # 因为按钮通常在屏幕右侧，与摇杆区域不重叠
             if button_1_rect.collidepoint(event.pos):
                 button_1_state = 1
                 button_1_pressed = True
                 print("按钮1被按下")  # 调试信息
-                
+
             elif button_2_rect.collidepoint(event.pos):
                 button_2_state = 1
                 button_2_pressed = True
                 print("按钮2被按下")  # 调试信息
-                
+
             elif button_3_rect.collidepoint(event.pos):
                 button_3_state = 1
                 button_3_pressed = True
                 print("按钮3被按下")  # 调试信息
 
+            elif back_button_rect.collidepoint(mouse_pos):
+                back_button_pressed = True
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            # 检查哪个按钮被松开
+            # 检查哪个按钮被松开，即使在摇杆拖拽时也要能处理按钮事件
             if button_1_pressed:
                 button_1_state = 0
                 button_1_pressed = False
                 print("按钮1被松开")  # 调试信息
-                
+
             if button_2_pressed:
                 button_2_state = 0
                 button_2_pressed = False
                 print("按钮2被松开")  # 调试信息
-                
+
             if button_3_pressed:
                 button_3_state = 0
                 button_3_pressed = False
                 print("按钮3被松开")  # 调试信息
-
+            if back_button_pressed:
+                back_button_pressed = False
         # 键盘按键事件处理
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_z:
@@ -206,7 +220,7 @@ def handle_button_events(events):
                 button_3_state = 1
                 button_3_pressed = True
                 print("按钮3被按下 (C键)")
-                
+
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_z:
                 button_1_state = 0
@@ -231,39 +245,74 @@ def draw_buttons():
         gameplay_surface.blit(IMAGE_ASSETS['cropped_button_1'], button_1_rect.topleft)
     else:  # 按下状态
         gameplay_surface.blit(IMAGE_ASSETS['feedback_button_1'], button_1_rect.topleft)
-    
+
     # 绘制按钮2
     if button_2_state == 0:  # 正常状态
         gameplay_surface.blit(IMAGE_ASSETS['cropped_button_2'], button_2_rect.topleft)
     else:  # 按下状态
         gameplay_surface.blit(IMAGE_ASSETS['feedback_button_2'], button_2_rect.topleft)
-    
+
     # 绘制按钮3
     if button_3_state == 0:  # 正常状态
         gameplay_surface.blit(IMAGE_ASSETS['cropped_button_3'], button_3_rect.topleft)
     else:  # 按下状态
         gameplay_surface.blit(IMAGE_ASSETS['feedback_button_3'], button_3_rect.topleft)
 
+    # 绘制返回按钮
+    try:
+        font = pygame.font.Font("fonts/NotoSansSC-Regular.ttf", 24)
+        mouse_pos = pygame.mouse.get_pos()
+        is_hover = back_button_rect.collidepoint(mouse_pos)
+
+        if is_hover:
+            bg_color = (70, 70, 70)
+            border_color = (0, 120, 255)
+        else:
+            bg_color = (50, 50, 50)
+            border_color = (100, 100, 100)
+
+        pygame.draw.rect(gameplay_surface, bg_color, back_button_rect, border_radius=8)
+        pygame.draw.rect(gameplay_surface, border_color, back_button_rect, 2, border_radius=8)
+
+        back_text = font.render("返回", True, (255, 255, 255))
+        back_pos = (back_button_rect.centerx - back_text.get_width()//2,
+                   back_button_rect.centery - back_text.get_height()//2)
+        gameplay_surface.blit(back_text, back_pos)
+    except Exception:
+        pass
+
 # --- 7. 主循环逻辑 ---
 def gameplay(events):
-    global player_direction, animation_timer, animation_index
-    
+    global player_direction, animation_timer, animation_index, back_button_pressed
+
     # 处理输入事件
     handle_joystick_events(events)
     handle_button_events(events)
     handle_keyboard_events(events)
-    
+
+    # 检查返回按钮点击
+    # 注意：返回按钮在handle_button_events中处理，我们检查状态变化
+    # 但如果返回按钮被按下，需要在松开时返回
+    # 实际上，由于返回按钮在handle_button_events中处理，back_button_pressed会在松开时被重置
+    # 所以我们需要在按钮被按下时返回，而不是等待松开
+    # 为了让返回按钮和游戏内按钮处理保持一致，我们使用一个标志
+    for event in events:
+        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if back_button_pressed:
+                back_button_pressed = False  # 重置状态
+                return gameplay_surface, "back"
+
     # 更新状态
     if joystick_dragging:
         update_joystick_position(pygame.mouse.get_pos())
-    
+
     update_button_states()
 
     # --- 玩家逻辑更新  ---
     # 合并摇杆和键盘输入
     joystick_dx, joystick_dy = joystick_direction
     keyboard_dx, keyboard_dy = keyboard_direction
-    
+
     # 优先使用键盘输入，如果没有键盘输入则使用摇杆输入
     if abs(keyboard_dx) > 0.1 or abs(keyboard_dy) > 0.1:
         dx, dy = keyboard_dx, keyboard_dy
@@ -286,7 +335,7 @@ def gameplay(events):
         # 移动逻辑盒子
         player_logical_rect.x += dx * player_speed
         player_logical_rect.y += dy * player_speed
-        
+
         # 更新动画计时
         current_time = pygame.time.get_ticks()
         if current_time - animation_timer > ANIMATION_FRAME_DURATION:
@@ -298,16 +347,16 @@ def gameplay(events):
 
     # --- 绘制  ---
     gameplay_surface.blit(IMAGE_ASSETS['background'], (0, 0))
-    
+
     current_sprite_key = ANIMATION_SEQUENCES[player_direction][animation_index]
     current_player_image = IMAGE_ASSETS.get(current_sprite_key)
     if current_player_image:
         visual_rect = current_player_image.get_rect(midbottom=player_logical_rect.midbottom)
         gameplay_surface.blit(current_player_image, visual_rect)
-    
+
     # 绘制UI元素
     gameplay_surface.blit(joystick_base_img, joystick_base_rect)
     draw_buttons()  # 使用新的按钮绘制函数
     gameplay_surface.blit(joystick_top_img, joystick_top_rect)
-    
-    return gameplay_surface
+
+    return gameplay_surface, None

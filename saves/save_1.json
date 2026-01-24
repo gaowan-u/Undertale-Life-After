@@ -1,27 +1,30 @@
 {
   "metadata": {
     "version": "0.0.1",
-    "created_at": "2025-11-30 08:37:21",
-    "last_played": "2025-11-30 08:37:21",
-    "play_time": 0
+    "created_at": "2026-01-24 23:52:22",
+    "last_played": "2026-01-24 23:52:22",
+    "play_time": 1200
   },
   "player": {
-    "name": "测试玩家",
-    "level": 1,
-    "health": 20,
-    "max_health": 20,
-    "attack": 10,
-    "defense": 10,
-    "gold": 0,
+    "name": "Frisk",
+    "level": 3,
+    "health": 25,
+    "max_health": 25,
+    "attack": 12,
+    "defense": 11,
+    "gold": 50,
     "items": [],
     "equipment": {}
   },
   "progress": {
-    "current_chapter": 1,
+    "current_chapter": 2,
     "current_scene": "坠落遗迹",
-    "completed_chapters": [],
+    "completed_chapters": [
+      1
+    ],
     "unlocked_areas": [
-      "坠落遗迹"
+      "坠落遗迹",
+      "起始点"
     ],
     "story_flags": {},
     "choices": {}

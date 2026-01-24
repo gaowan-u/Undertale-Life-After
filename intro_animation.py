@@ -1,5 +1,6 @@
 # intro_animation.py
 import warnings
+from typing import Tuple, List, Optional
 warnings.filterwarnings("ignore", category=UserWarning, module='pygame.pkgdata')
 import pygame
 import sys
@@ -23,7 +24,17 @@ image_files = [
     "background_4.png"
 ]
 
-def load_resources():
+def load_resources() -> Tuple[pygame.Surface, List[pygame.Surface], Optional[pygame.mixer.Sound], bool]:
+    """
+    加载游戏资源：开场图片、图片序列、音频。
+
+    Returns:
+        Tuple: 包含四个元素的元组
+        - pygame.Surface: 第一张图片
+        - List[pygame.Surface]: 所有图片的列表
+        - pygame.mixer.Sound or None: 音频对象，如果加载失败则为None
+        - bool: 音频是否可用
+    """
     # 加载初始图片 / Load initial image
     first_image_path = os.path.join(image_folder, "background_0.jpg")
     if not os.path.exists(first_image_path):
@@ -124,7 +135,7 @@ def play(screen):  # 添加screen参数
             if not all_images_shown:
                 if current_image_index < len(images) - 1:
                     if current_image_index == 0:
-                        interval = image_intervals["img1_to_img2"] 
+                        interval = image_intervals["img1_to_img2"]
                     elif current_image_index == 1:
                         interval = image_intervals["img2_to_img3"]
                     elif current_image_index == 2:
@@ -141,7 +152,7 @@ def play(screen):  # 添加screen参数
 
             # 渲染 / Rendering
             screen.fill((0, 0, 0))
-            
+
             if all_images_shown:
                 if current_time - end_time > 5.0:
                     if not resources_released:
@@ -176,6 +187,6 @@ def play(screen):  # 添加screen参数
         # 如果是因为跳过而退出，返回True
         if skipped:
             return True
-    
+
     # 默认返回False，只有正常播放完成或被跳过时才返回True
     return False

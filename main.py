@@ -1,3 +1,4 @@
+from typing import NoReturn
 from main_menu import MainMenu
 from intro_animation import play as play_intro, screen_width, screen_height
 from gameplay import gameplay
@@ -14,20 +15,23 @@ warnings.filterwarnings("ignore", category=UserWarning,
 
 # 导入其他模块
 
+background_music = "./audios/menu_music.ogg"
 
-def main():
+def main() -> NoReturn:
     # --- 初始化 ---
     pygame.init()
     try:
         pygame.mixer.init()
         audio_available = True
+        pygame.mixer.music.set_volume(0.5) # 50%的音量，不够再调
     except pygame.error:
-        print("警告: 音频设备不可用，游戏将在静音模式下运行")
+        print("请先启动音频服务，否则无法播放。")
         audio_available = False
+        pygame.quit()
+        sys.exit()
     screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("传说之下-劫后余生")
     clock = pygame.time.Clock()
-
     # --- 游戏状态和组件 ---
     game_state = 'intro'
     main_menu = MainMenu(screen)
@@ -65,6 +69,7 @@ def main():
         disclaimer_text_surfaces.append(text_alpha)
         disclaimer_shadow_surfaces.append(shadow_alpha)
 
+    background_music_playing = False # 当这玩意为False的时候就会播放菜单音乐
     # 游戏主循环
     running = True
     try:
@@ -77,9 +82,19 @@ def main():
 
                 # 状态机事件处理
                 if game_state == 'main_menu':
+                    if not background_music_playing and audio_available:
+                        try:
+                            pygame.mixer.music.load(background_music)
+                            pygame.mixer.music.play(-1)
+                            background_music_playing = True
+                        except pygame.error:
+                            print(f"警告：无法加载菜单音乐：{background_music}！")
                     action = main_menu.handle_event(event)
                     if action == "start_game":
                         game_state = 'gameplay'
+                        if background_music:
+                            pygame.mixer.music.stop()
+                            background_music_playing = False
                     elif action == "load_game":
                         game_state = 'save_menu'
                     elif action == "open_settings":
@@ -87,6 +102,13 @@ def main():
                     elif action == "exit":
                         running = False
                 elif game_state == 'save_menu':
+                    if not background_music_playing and audio_available:
+                        try:
+                            pygame.mixer.music.load(background_music)
+                            pygame.mixer.music.play(-1)
+                            background_music_playing = True
+                        except pygame.error:
+                            print(f"警告：菜单音乐{background_music}无法播放！")
                     action = save_menu.handle_event(event)
                     if action == "back":
                         game_state = 'main_menu'
@@ -96,11 +118,21 @@ def main():
                         if loaded_data:
                             print(f"加载存档 {save_menu.selected_slot}: {loaded_data['player']['name']}")
                             game_state = 'gameplay'
+                            if background_music_playing:
+                                pygame.mixer.music.stop()
+                                background_music_playing = False
                         else:
                             print("存档加载失败")
                 elif game_state == 'gameplay':
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                         game_state = 'main_menu'
+                        if not background_music_playing and audio_available:
+                            try:
+                                pygame.mixer.music.load(background_music)
+                                pygame.mixer.music.play(-1)
+                                background_music_playing = True
+                            except pygame.error:
+                                print(f"警告：{background_music}无法播放")
 
             # --- 状态逻辑更新 ---
             if game_state == 'intro':
@@ -108,7 +140,16 @@ def main():
                     game_state = 'disclaimer'
                     disclaimer_start_time = pygame.time.get_ticks()
             elif game_state == 'gameplay':
-                gameplay_surface = gameplay(events)
+                gameplay_surface, return_status = gameplay(events)
+                if return_status == "back":
+                    game_state = 'main_menu'
+                    if not background_music_playing and audio_available:
+                        try:
+                            pygame.mixer.music.load(background_music)
+                            pygame.mixer.music.play(-1)
+                            background_music_playing = True
+                        except pygame.error:
+                            print(f"警告：{background_music}无法播放")
 
             # --- 渲染 ---
             # 1. 绘制基础背景
@@ -167,7 +208,7 @@ def main():
 
             # --- 更新屏幕 ---
             pygame.display.flip()
-            clock.tick(60)
+            clock.tick(60) # 60帧
 
     except KeyboardInterrupt:
         print("\n检测到Ctrl+C中断，退出游戏...")
