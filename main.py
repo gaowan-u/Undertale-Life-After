@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore", category=UserWarning,
 
 # 导入其他模块
 
-background_music = "./audios/menu_music.ogg"
+background_music = "./audios/menu_music.ogg" # 菜单背景音乐
 
 def main() -> NoReturn:
     # --- 初始化 ---

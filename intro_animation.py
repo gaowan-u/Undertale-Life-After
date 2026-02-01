@@ -108,11 +108,9 @@ def play(screen):  # 添加screen参数
         # 播放音频 / Play audio
         if audio_available and audio:
             audio.play()
-        start_time = time.time()
 
         while running:
             current_time = time.time()
-            elapsed = current_time - start_time
 
             # 事件处理 / Event handling
             for event in pygame.event.get():
@@ -173,17 +171,18 @@ def play(screen):  # 添加screen参数
 
     except KeyboardInterrupt:
         print("程序结束。")  # Program ended
-        sys.exit()
         pygame.quit()
+        sys.exit()
 
     except Exception as e:
         print("程序错误：", e)  # Program error
-        sys.exit()
         pygame.quit()
+        sys.exit()
     finally:
         # 修复：确保资源被释放，并且如果被跳过也返回True
         images = None
-        audio.stop()
+        if audio:
+            audio.stop()
         # 如果是因为跳过而退出，返回True
         if skipped:
             return True

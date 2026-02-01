@@ -291,15 +291,11 @@ def gameplay(events):
     handle_keyboard_events(events)
 
     # 检查返回按钮点击
-    # 注意：返回按钮在handle_button_events中处理，我们检查状态变化
-    # 但如果返回按钮被按下，需要在松开时返回
-    # 实际上，由于返回按钮在handle_button_events中处理，back_button_pressed会在松开时被重置
-    # 所以我们需要在按钮被按下时返回，而不是等待松开
-    # 为了让返回按钮和游戏内按钮处理保持一致，我们使用一个标志
+    # 返回按钮在鼠标按下时立即返回主菜单
     for event in events:
-        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            if back_button_pressed:
-                back_button_pressed = False  # 重置状态
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            mouse_pos = pygame.mouse.get_pos()
+            if back_button_rect.collidepoint(mouse_pos):
                 return gameplay_surface, "back"
 
     # 更新状态
