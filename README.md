@@ -275,7 +275,8 @@ We are committed to respecting user privacy.
 
 1. **原作版权**
    本游戏《传说之下：劫后余生》中涉及的《Undertale》原作角色、世界观、剧情核心元素等知识产权，均归 **Toby Fox** 及其关联方所有。
-   _Undertale™ is a registered trademark of Toby Fox. All original Undertale content copyright © Toby Fox._
+   _Undertale™ is a registered trademark of Toby Fox._
+   _All original Undertale content copyright © Toby Fox._
 
 2. **衍生内容版权**
    本项目的 **新增剧情、原创角色、独立美术/音频素材、程序代码** 等衍生内容，版权归 **BOOM! Studio** 所有。
