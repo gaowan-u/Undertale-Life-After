@@ -7,13 +7,13 @@ import sys
 import os
 import time
 
-# 窗口尺寸 / Window size
-screen_width, screen_height = 1920, 1080
+# 从 resources 模块导入常量
+from resources import SCREEN_WIDTH, SCREEN_HEIGHT, IMAGE_FOLDER, AUDIO_FOLDER
 
-# 路径设置 / Path settings
-base_folder = os.path.dirname(os.path.abspath(__file__))
-image_folder = os.path.join(base_folder, "images")
-audio_folder = os.path.join(base_folder, "audios")
+# 窗口尺寸（保持向后兼容的别名）
+screen_width, screen_height = SCREEN_WIDTH, SCREEN_HEIGHT
+
+# 音频文件名
 audio_file = "begin.ogg"
 
 # 背景图 / Background images
@@ -36,14 +36,14 @@ def load_resources() -> Tuple[pygame.Surface, List[pygame.Surface], Optional[pyg
         - bool: 音频是否可用
     """
     # 加载初始图片 / Load initial image
-    first_image_path = os.path.join(image_folder, "background_0.jpg")
+    first_image_path = os.path.join(IMAGE_FOLDER, "background_0.jpg")
     if not os.path.exists(first_image_path):
         print(f"错误: 缺少初始图片: {first_image_path}")  # Error: missing initial image
         sys.exit(1)
 
     try:
         first_image = pygame.image.load(first_image_path)
-        first_image = pygame.transform.scale(first_image, (screen_width, screen_height))
+        first_image = pygame.transform.scale(first_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
     except pygame.error:
         print(f"错误: 无法加载初始图片: {first_image_path}")  # Error: cannot load initial image
         sys.exit(1)
@@ -51,20 +51,20 @@ def load_resources() -> Tuple[pygame.Surface, List[pygame.Surface], Optional[pyg
     # 加载其他图片 / Load other images
     images = []
     for img_file in image_files:
-        path = os.path.join(image_folder, img_file)
+        path = os.path.join(IMAGE_FOLDER, img_file)
         if not os.path.exists(path):
             print(f"错误: 图片文件不存在: {path}")  # Error: image file does not exist
             sys.exit(1)
         try:
             img = pygame.image.load(path)
-            img = pygame.transform.scale(img, (screen_width, screen_height))
+            img = pygame.transform.scale(img, (SCREEN_WIDTH, SCREEN_HEIGHT))
             images.append(img)
         except pygame.error:
             print(f"错误: 无法加载图片: {path}")  # Error: cannot load image
             sys.exit(1)
 
     # 加载音频 / Load audio
-    audio_path = os.path.join(audio_folder, audio_file)
+    audio_path = os.path.join(AUDIO_FOLDER, audio_file)
     if not os.path.exists(audio_path):
         print(f"错误: 音频文件不存在: {audio_path}")  # Error: audio file does not exist
         sys.exit(1)

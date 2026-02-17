@@ -1,20 +1,34 @@
 import pygame
-from intro_animation import screen_width, screen_height
+from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
 from save_system import save_system, NameInputSystem
+
 
 class SaveMenu:
     def __init__(self, screen):
         self.screen = screen
-        self.font = pygame.font.Font("fonts/NotoSansSC-Regular.ttf", 32)
-        self.title_font = pygame.font.Font("fonts/NotoSansSC-Bold.ttf", 48)
-        self.small_font = pygame.font.Font("fonts/NotoSansSC-Regular.ttf", 24)
+        
+        # 使用 Resources 单例
+        self.resources = Resources()
+        
+        # 从单例获取字体
+        self.font = self.resources.font_32
+        self.title_font = self.resources.title_font_medium
+        self.small_font = self.resources.font_24
+        
+        # 从单例获取颜色
+        self.COLOR_WHITE = self.resources.COLOR_WHITE
+        self.COLOR_BLACK = self.resources.COLOR_BLACK
+        self.COLOR_GRAY = self.resources.COLOR_GRAY
+        self.COLOR_BLUE = self.resources.COLOR_BLUE
+        self.COLOR_GREEN = self.resources.COLOR_GREEN
+        self.COLOR_RED = self.resources.COLOR_RED
         
         # 存档槽位置
         self.save_slots = []
         slot_width, slot_height = 600, 120
         for i in range(3):
             slot_rect = pygame.Rect(
-                screen_width//2 - slot_width//2,
+                SCREEN_WIDTH // 2 - slot_width // 2,
                 200 + i * (slot_height + 20),
                 slot_width,
                 slot_height
@@ -24,35 +38,23 @@ class SaveMenu:
         # 按钮
         self.back_rect = pygame.Rect(50, 50, 120, 50)
         
-        # 颜色
-        self.COLOR_WHITE = (255, 255, 255)
-        self.COLOR_BLACK = (0, 0, 0)
-        self.COLOR_GRAY = (100, 100, 100)
-        self.COLOR_BLUE = (0, 120, 255)
-        self.COLOR_GREEN = (0, 200, 0)
-        self.COLOR_RED = (255, 0, 0)
-        
         # 状态
         self.selected_slot = None
         self.name_input_system = None
         self.showing_name_input = False
-        
+
     def draw_rounded_rect(self, surface, color, rect, radius=10, width=0):
         """绘制圆角矩形"""
         pygame.draw.rect(surface, color, rect, width, border_radius=radius)
-    
+
     def draw(self):
         """绘制存档菜单"""
-        # 半透明渐变背景
-        overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-        for y in range(screen_height):
-            alpha = int(180 * (y / screen_height))
-            pygame.draw.line(overlay, (20, 20, 30, alpha), (0, y), (screen_width, y))
-        self.screen.blit(overlay, (0, 0))
+        # 使用单例中的渐变遮罩
+        self.screen.blit(self.resources.gradient_overlay, (0, 0))
         
         # 标题 - 添加发光效果
         title_text = self.title_font.render("选择存档", True, self.COLOR_WHITE)
-        title_pos = (screen_width//2 - title_text.get_width()//2, 70)
+        title_pos = (SCREEN_WIDTH // 2 - title_text.get_width() // 2, 70)
         
         # 标题阴影
         title_shadow = self.title_font.render("选择存档", True, (0, 0, 0, 100))
@@ -61,7 +63,7 @@ class SaveMenu:
         
         # 标题下划线
         underline_rect = pygame.Rect(
-            screen_width//2 - 100,
+            SCREEN_WIDTH // 2 - 100,
             title_pos[1] + title_text.get_height() + 5,
             200,
             3
@@ -84,8 +86,8 @@ class SaveMenu:
             self.draw_rounded_rect(self.screen, (100, 100, 100), self.back_rect, 8, 2)
         
         back_text = self.font.render("返回", True, self.COLOR_WHITE)
-        back_pos = (self.back_rect.centerx - back_text.get_width()//2, 
-                   self.back_rect.centery - back_text.get_height()//2)
+        back_pos = (self.back_rect.centerx - back_text.get_width() // 2,
+                    self.back_rect.centery - back_text.get_height() // 2)
         self.screen.blit(back_text, back_pos)
         
         # 获取存档列表
@@ -99,12 +101,12 @@ class SaveMenu:
             is_hover = slot_rect.collidepoint(mouse_pos)
             
             if is_hover:
-                bg_color = (45, 45, 55)
+                bg_color = self.resources.COLOR_BG_HOVER
                 border_color = self.COLOR_BLUE
                 border_width = 3
             else:
-                bg_color = (35, 35, 45)
-                border_color = (80, 80, 90)
+                bg_color = self.resources.COLOR_BG_DARK
+                border_color = self.resources.COLOR_BORDER
                 border_width = 2
             
             # 绘制圆角矩形背景
@@ -123,12 +125,12 @@ class SaveMenu:
                 plus_size = 30
                 plus_center_x = slot_rect.x + 500
                 plus_center_y = slot_rect.centery
-                pygame.draw.line(self.screen, plus_color, 
-                               (plus_center_x - plus_size//2, plus_center_y),
-                               (plus_center_x + plus_size//2, plus_center_y), 4)
-                pygame.draw.line(self.screen, plus_color, 
-                               (plus_center_x, plus_center_y - plus_size//2),
-                               (plus_center_x, plus_center_y + plus_size//2), 4)
+                pygame.draw.line(self.screen, plus_color,
+                                 (plus_center_x - plus_size // 2, plus_center_y),
+                                 (plus_center_x + plus_size // 2, plus_center_y), 4)
+                pygame.draw.line(self.screen, plus_color,
+                                 (plus_center_x, plus_center_y - plus_size // 2),
+                                 (plus_center_x, plus_center_y + plus_size // 2), 4)
                 
                 new_game_text = self.small_font.render("点击创建新游戏", True, (120, 120, 120))
                 new_game_pos = (slot_rect.x + 25, slot_rect.y + 60)
@@ -171,14 +173,14 @@ class SaveMenu:
                 
                 self.draw_rounded_rect(self.screen, delete_color, delete_rect, 6)
                 delete_text = self.small_font.render("删除", True, self.COLOR_WHITE)
-                delete_pos = (delete_rect.centerx - delete_text.get_width()//2, 
-                             delete_rect.centery - delete_text.get_height()//2)
+                delete_pos = (delete_rect.centerx - delete_text.get_width() // 2,
+                              delete_rect.centery - delete_text.get_height() // 2)
                 self.screen.blit(delete_text, delete_pos)
         
         # 如果正在显示名称输入界面
         if self.showing_name_input and self.name_input_system:
             self.name_input_system.draw()
-    
+
     def handle_event(self, event):
         """处理存档菜单事件"""
         # 如果正在显示名称输入界面，只处理名称输入事件和ESC取消，完全阻止其他点击
@@ -242,7 +244,7 @@ class SaveMenu:
                         return "load_save"
         
         return None
-    
+
     def update(self):
         """更新存档菜单状态"""
         # 这里可以添加一些动画效果

@@ -1,5 +1,5 @@
 import pygame
-from intro_animation import screen_height, screen_width
+from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT, IMAGE_FOLDER
 import math
 
 # --- 1. 资源加载  ---
@@ -30,11 +30,11 @@ except pygame.error as e:
     IMAGE_ASSETS = {}
 
 # --- 2. 摇杆和键盘控制初始化 ---
-gameplay_surface = pygame.Surface((screen_width, screen_height))
+gameplay_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 joystick_base_img = IMAGE_ASSETS.get('cropped_joystick_base')
 joystick_top_img = IMAGE_ASSETS.get('cropped_joystick_top')
 if joystick_base_img and joystick_top_img:
-    joystick_base_rect = joystick_base_img.get_rect(topleft=(128, screen_height - 240))
+    joystick_base_rect = joystick_base_img.get_rect(topleft=(128, SCREEN_HEIGHT - 240))
     joystick_top_rect = joystick_top_img.get_rect(center=joystick_base_rect.center)
 else:
     joystick_base_rect, joystick_top_rect = pygame.Rect(0,0,1,1), pygame.Rect(0,0,1,1)
@@ -75,9 +75,9 @@ ANIMATION_SEQUENCES = {
 
 # --- 5. 按钮系统初始化 ---
 # 按钮位置和状态
-button_1_rect = pygame.Rect(1400, screen_height - 240, IMAGE_ASSETS['cropped_button_1'].get_width(), IMAGE_ASSETS['cropped_button_1'].get_height())
-button_2_rect = pygame.Rect(1544, screen_height - 320, IMAGE_ASSETS['cropped_button_2'].get_width(), IMAGE_ASSETS['cropped_button_2'].get_height())
-button_3_rect = pygame.Rect(1688, screen_height - 400, IMAGE_ASSETS['cropped_button_3'].get_width(), IMAGE_ASSETS['cropped_button_3'].get_height())
+button_1_rect = pygame.Rect(1400, SCREEN_HEIGHT - 240, IMAGE_ASSETS['cropped_button_1'].get_width(), IMAGE_ASSETS['cropped_button_1'].get_height())
+button_2_rect = pygame.Rect(1544, SCREEN_HEIGHT - 320, IMAGE_ASSETS['cropped_button_2'].get_width(), IMAGE_ASSETS['cropped_button_2'].get_height())
+button_3_rect = pygame.Rect(1688, SCREEN_HEIGHT - 400, IMAGE_ASSETS['cropped_button_3'].get_width(), IMAGE_ASSETS['cropped_button_3'].get_height())
 back_button_rect = pygame.Rect(50, 50, 120, 50)
 
 # 按钮状态：0=正常，1=按下
@@ -260,13 +260,14 @@ def draw_buttons():
 
     # 绘制返回按钮
     try:
-        font = pygame.font.Font("fonts/NotoSansSC-Regular.ttf", 24)
+        resources = Resources()
+        font = resources.font_24
         mouse_pos = pygame.mouse.get_pos()
         is_hover = back_button_rect.collidepoint(mouse_pos)
 
         if is_hover:
             bg_color = (70, 70, 70)
-            border_color = (0, 120, 255)
+            border_color = resources.COLOR_BLUE
         else:
             bg_color = (50, 50, 50)
             border_color = (100, 100, 100)
@@ -274,7 +275,7 @@ def draw_buttons():
         pygame.draw.rect(gameplay_surface, bg_color, back_button_rect, border_radius=8)
         pygame.draw.rect(gameplay_surface, border_color, back_button_rect, 2, border_radius=8)
 
-        back_text = font.render("返回", True, (255, 255, 255))
+        back_text = font.render("返回", True, resources.COLOR_WHITE)
         back_pos = (back_button_rect.centerx - back_text.get_width()//2,
                    back_button_rect.centery - back_text.get_height()//2)
         gameplay_surface.blit(back_text, back_pos)

@@ -1,9 +1,11 @@
 from typing import NoReturn
 from main_menu import MainMenu
-from intro_animation import play as play_intro, screen_width, screen_height
+from intro_animation import play as play_intro
 from gameplay import gameplay
 from save_system import save_system
 from save_menu import SaveMenu
+from setting import Setting
+from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
 import pygame
 import sys
 import warnings
@@ -29,21 +31,22 @@ def main() -> NoReturn:
         audio_available = False
         pygame.quit()
         sys.exit()
-    screen = pygame.display.set_mode((screen_width, screen_height))
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("传说之下-劫后余生")
     clock = pygame.time.Clock()
     # --- 游戏状态和组件 ---
     game_state = 'intro'
     main_menu = MainMenu(screen)
     save_menu = SaveMenu(screen)
+    setting_menu = Setting(screen)
     disclaimer_start_time = -1
 
     # 用于在暂停时保留游戏画面
-    gameplay_surface = pygame.Surface((screen_width, screen_height))
+    gameplay_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
     gameplay_surface.fill((0, 0, 0))  # 默认游戏背景
 
     # --- 版权声明内容 ---
-    disclaimer_font = pygame.font.Font("fonts/NotoSansSC-Regular.ttf", 24)
+    disclaimer_font = Resources().font_24
     disclaimer_text = [
         "本作品为粉丝创作，非官方授权产品",
         "Undertale™ 是Toby Fox的注册商标",
@@ -98,7 +101,7 @@ def main() -> NoReturn:
                     elif action == "load_game":
                         game_state = 'save_menu'
                     elif action == "open_settings":
-                        pass  # 这里可以添加设置菜单逻辑 但考虑到后面素材可能会提交，先不写，而且还得画摇杆和按钮。😰
+                        game_state = 'settings'
                     elif action == "exit":
                         running = False
                 elif game_state == 'save_menu':
@@ -123,6 +126,10 @@ def main() -> NoReturn:
                                 background_music_playing = False
                         else:
                             print("存档加载失败")
+                elif game_state == 'settings':
+                    action = setting_menu.handle_event(event)
+                    if action == "back":
+                        game_state = 'main_menu'
                 elif game_state == 'gameplay':
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                         game_state = 'main_menu'
@@ -171,19 +178,19 @@ def main() -> NoReturn:
                         progress = elapsed / 1000
                         # 缓动函数：easeOutCubic
                         progress = 1 - (1 - progress) ** 3
-                        y_pos = screen_height + 80 - \
-                            (screen_height + 80 - (screen_height - 160)) * progress
+                        y_pos = SCREEN_HEIGHT + 80 - \
+                            (SCREEN_HEIGHT + 80 - (SCREEN_HEIGHT - 160)) * progress
                         alpha = int(255 * progress)
                     elif elapsed < 4000:
                         progress = (elapsed - 1000) / 3000
-                        y_pos = screen_height - 160 + 5 * \
+                        y_pos = SCREEN_HEIGHT - 160 + 5 * \
                             math.sin(progress * 2 * math.pi)
                         alpha = 255
                     else:
                         progress = (elapsed - 4000) / 1000
                         # 缓动函数：easeInCubic
                         progress = progress ** 3
-                        y_pos = (screen_height - 160) - 100 * progress
+                        y_pos = (SCREEN_HEIGHT - 160) - 100 * progress
                         alpha = int(255 * (1 - progress))
 
                     # 批量设置透明度并绘制（性能优化）
@@ -205,6 +212,9 @@ def main() -> NoReturn:
             elif game_state == 'save_menu':
                 # 存档菜单会自己绘制半透明背景
                 save_menu.draw()
+            elif game_state == 'settings':
+                # 设置菜单
+                setting_menu.draw()
 
             # --- 更新屏幕 ---
             pygame.display.flip()

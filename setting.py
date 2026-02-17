@@ -1,47 +1,23 @@
-import pygame
-import sys
-import os
 import math
-from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
+import pygame
+from main_menu import MainMenu
+from resources import SCREEN_WIDTH, SCREEN_HEIGHT
 
-# 确保能从根目录导入，以便main.py调用
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
-class MainMenu:
+class Setting(MainMenu):
     def __init__(self, screen):
-        self.screen = screen
+        super().__init__(screen)
+        # 覆盖菜单项为设置菜单项
+        self.menu_items = self.resources.setting_menu_items.copy()
         
-        # 使用 Resources 单例
-        self.resources = Resources()
-        
-        # 从单例获取字体
-        self.title_font = self.resources.title_font
-        self.item_font = self.resources.item_font
-        
-        # 从单例获取菜单项
-        self.menu_items = self.resources.main_menu_items.copy()
-        self.selected_index = -1  # -1 表示没有选中任何项
-        
-        # 从单例获取颜色
-        self.COLOR_WHITE = self.resources.COLOR_WHITE
-        self.COLOR_YELLOW = self.resources.COLOR_YELLOW
-        self.COLOR_RED = self.resources.COLOR_RED
-        
-        # 从单例获取遮罩层
-        self.overlay = self.resources.overlay
-        
-        # 创建灵魂之心选择器
-        self.heart_selector = self.resources.create_heart_surface(30, self.COLOR_RED)
-        
-        # 预先计算所有菜单项的矩形区域，用于后续的碰撞检测
+        # 重新计算菜单项位置
         self.menu_rects = []
         for index, item in enumerate(self.menu_items):
             item_text = self.item_font.render(item, True, self.COLOR_WHITE)
             item_rect = item_text.get_rect(
                 center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + index * 80))
             self.menu_rects.append(item_rect)
-
+    
     def handle_event(self, event):
         # 响应鼠标移动事件，更新选中项
         if event.type == pygame.MOUSEMOTION:
@@ -56,23 +32,23 @@ class MainMenu:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and self.selected_index != -1:
                 if self.selected_index == 0:
-                    return "start_game"
+                    return "volume"      # 音量设置
                 elif self.selected_index == 1:
-                    return "load_game"
+                    return "quality"     # 画质设置
                 elif self.selected_index == 2:
-                    return "open_settings"
+                    return "control"     # 控制设置
                 elif self.selected_index == 3:
-                    return "exit"
+                    return "back"        # 返回
         
-        # 响应ESC键，用于关闭菜单返回游戏
+        # 响应ESC键，返回主菜单
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                return "resume"
+                return "back"
         
-        return None  # 没有发生任何动作
+        return None
 
-    def draw(self, title="主菜单"):
-        """绘制菜单。主循环需要先绘制好游戏背景，再调用此方法"""
+    def draw(self, title="设置"):
+        """绘制设置菜单"""
         # 绘制半透明遮罩
         self.screen.blit(self.overlay, (0, 0))
         
