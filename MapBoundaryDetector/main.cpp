@@ -51,7 +51,7 @@ public:
         cvtColor(image, hsv, COLOR_BGR2HSV);
         
         // 定义深蓝色的范围（地图背景色）
-        // 根据图片，地图是深蓝色/紫色
+        // 地图是深蓝色/紫色
         Scalar lowerBlue(100, 40, 40);
         Scalar upperBlue(130, 255, 255);
         
