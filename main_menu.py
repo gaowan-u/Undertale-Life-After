@@ -42,7 +42,7 @@ class MainMenu:
                 center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + index * 80))
             self.menu_rects.append(item_rect)
 
-    def handle_event(self, event):
+    def handle_event(self, event) -> str | None:
         # 响应鼠标移动事件，更新选中项
         if event.type == pygame.MOUSEMOTION:
             mouse_pos = pygame.mouse.get_pos()
