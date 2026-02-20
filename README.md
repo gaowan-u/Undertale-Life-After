@@ -22,7 +22,7 @@ _开发版本 v0.0.1-beta_
 
 1. <span style="color:#2ea043">📝 **docs**：优化README更新日志，添加类型标签（feat/perf/fix/refactor/docs）和时间高亮功能（2026-02-20）</span>
 
-2. <span style="color:#2ea043">🟣 **refactor**：重构叙事目录结构，分离为中文、英文、日语三个语言子目录（2026-02-20）</span>
+2. <span style="color:#2ea043">🟣 **refactor**：重构叙事目录结构，分离为中文、英文、日语三个语言子目录。英文和日语翻译均提供两个版本：AI翻译版 + 人工微调版，欢迎反馈意见（2026-02-20）</span>
 
 3. <span style="color:#2ea043">🟢 **feat**：新增入口场景图片 `images/Entrance.png`（2026-02-19）</span>
 
