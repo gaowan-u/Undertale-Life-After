@@ -20,43 +20,45 @@ _开发版本 v0.0.1-beta_
 
 ### 项目更新
 
-1. <span style="color:#2ea043">📝 **docs**：优化README更新日志，添加类型标签（feat/perf/fix/refactor/docs）和时间高亮功能（2026-02-20）</span>
+1. <span style="color:#2ea043">🟢 **feat**：项目已解档，开发重启，预计下次更新将进行剧情类大重构（2026-05-30）</span>
 
-2. <span style="color:#2ea043">🟣 **refactor**：重构叙事目录结构，分离为中文、英文、日语三个语言子目录。英文和日语翻译均提供两个版本：AI翻译版 + 人工微调版，欢迎反馈意见（2026-02-20）</span>
+2. <span style="color:#2ea043">📝 **docs**：优化README更新日志，添加类型标签（feat/perf/fix/refactor/docs）和时间高亮功能（2026-02-20）</span>
 
-3. <span style="color:#2ea043">🟢 **feat**：新增入口场景图片 `images/Entrance.png`（2026-02-19）</span>
+3. <span style="color:#2ea043">🟣 **refactor**：重构叙事目录结构，分离为中文、英文、日语三个语言子目录。英文和日语翻译均提供两个版本：AI翻译版 + 人工微调版，欢迎反馈意见（2026-02-20）</span>
 
-4. <span style="color:#2ea043">🔵 **perf**：代码优化，添加 `main_menu.py` 返回类型注解，规范化 `setting.py` 代码格式（2026-02-19）</span>
+4. <span style="color:#2ea043">🟢 **feat**：新增入口场景图片 `images/Entrance.png`（2026-02-19）</span>
 
-5. <span style="color:#2ea043">🟢 **feat**：新增设置菜单 (`setting.py`)，继承主菜单类实现统一的界面风格，支持音量、画质、控制等设置选项框架（2026-02-17）</span>
+5. <span style="color:#2ea043">🔵 **perf**：代码优化，添加 `main_menu.py` 返回类型注解，规范化 `setting.py` 代码格式（2026-02-19）</span>
 
-6. <span style="color:#2ea043">🟢 **feat**：新增地图边界检测工具 (`MapBoundaryDetector/`)，使用 OpenCV + C++ 实现自动检测地图可行走区域边界，输出 JSON 格式坐标数据（2026-02-17）</span>
+6. <span style="color:#2ea043">🟢 **feat**：新增设置菜单 (`setting.py`)，继承主菜单类实现统一的界面风格，支持音量、画质、控制等设置选项框架（2026-02-17）</span>
 
-7. <span style="color:#2ea043">🟣 **refactor**：重构资源管理系统，新增 `resources.py` 模块，使用单例模式集中管理字体、颜色、路径和遮罩层等共享资源，优化内存使用和加载效率，同时更换主菜单背景音乐（2026-02-17）</span>
+7. <span style="color:#2ea043">🟢 **feat**：新增地图边界检测工具 (`MapBoundaryDetector/`)，使用 OpenCV + C++ 实现自动检测地图可行走区域边界，输出 JSON 格式坐标数据（2026-02-17）</span>
 
-8. <span style="color:#2ea043">🟣 **refactor**：删除旧的可行走区域顶点数据，使用新的地图边界检测方案替代（2026-02-17）</span>
+8. <span style="color:#2ea043">🟣 **refactor**：重构资源管理系统，新增 `resources.py` 模块，使用单例模式集中管理字体、颜色、路径和遮罩层等共享资源，优化内存使用和加载效率，同时更换主菜单背景音乐（2026-02-17）</span>
 
-9. 🟣 **refactor**：将 PC 优化分支 (feat/pc-optimization) 合并为主分支，统一开发方向（2026-02-12）
+9. <span style="color:#2ea043">🟣 **refactor**：删除旧的可行走区域顶点数据，使用新的地图边界检测方案替代（2026-02-17）</span>
 
-10. 🟡 **fix**：修复摇杆与按钮交互冲突，完善存档系统（2026-01-30）
+10. 🟣 **refactor**：将 PC 优化分支 (feat/pc-optimization) 合并为主分支，统一开发方向（2026-02-12）
 
-11. 🔵 **perf**：优化了开场动画的退出逻辑，确保按下ESC键能正确跳过动画（2025-11-16）
+11. 🟡 **fix**：修复摇杆与按钮交互冲突，完善存档系统（2026-01-30）
 
-12. 🟢 **feat**：新增完整的存档系统，支持多存档位管理和角色名称自定义（2025-11-30）
+12. 🔵 **perf**：优化了开场动画的退出逻辑，确保按下ESC键能正确跳过动画（2025-11-16）
 
-13. 🟢 **feat**：添加存档菜单界面，支持创建、加载和删除存档功能（2025-11-30）
+13. 🟢 **feat**：新增完整的存档系统，支持多存档位管理和角色名称自定义（2025-11-30）
 
-14. 🟢 **feat**：改进主菜单，增加"加载游戏"选项和存档系统整合（2025-11-30）
+14. 🟢 **feat**：添加存档菜单界面，支持创建、加载和删除存档功能（2025-11-30）
 
-15. 🟢 **feat**：完善游戏核心功能模块，包括角色移动系统、动画系统和摇杆控制（2025-10-18）
+15. 🟢 **feat**：改进主菜单，增加"加载游戏"选项和存档系统整合（2025-11-30）
 
-16. 🟢 **feat**：添加数据文件支持(positions.json和walkable_area_vertices.json)（2025-10-18）
+16. 🟢 **feat**：完善游戏核心功能模块，包括角色移动系统、动画系统和摇杆控制（2025-10-18）
 
-17. 🟢 **feat**：增加叙事文本系统，支持多章节剧情结构（2025-10-07）
+17. 🟢 **feat**：添加数据文件支持(positions.json和walkable_area_vertices.json)（2025-10-18）
 
-18. 🔵 **perf**：优化音频系统，在音频设备不可用时退出并提供提示（2025-10-07）
+18. 🟢 **feat**：增加叙事文本系统，支持多章节剧情结构（2025-10-07）
 
-19. 🔵 **perf**：改变加载游戏背景，使其更美观（2025-10-07）
+19. 🔵 **perf**：优化音频系统，在音频设备不可用时退出并提供提示（2025-10-07）
+
+20. 🔵 **perf**：改变加载游戏背景，使其更美观（2025-10-07）
 
 </details>
 
@@ -110,7 +112,7 @@ pkg install termux-x11-nightly
 
 ---
 
-### 🐍 第二步：安装 Python 构建环境
+🐍 第二步：安装 Python 构建环境
 
 ```bash
 pip install --upgrade pip setuptools wheel cython
@@ -118,7 +120,7 @@ pip install --upgrade pip setuptools wheel cython
 
 ---
 
-### 🎮 第三步：安装 Pygame
+🎮 第三步：安装 Pygame
 
 ```bash
 pip install pygame
@@ -126,7 +128,7 @@ pip install pygame
 
 ---
 
-### 📥 第四步：下载游戏源码
+📥 第四步：下载游戏源码
 
 ```bash
 git clone https://github.com/gaowan-u/Undertale-Life-After.git
@@ -135,7 +137,7 @@ cd Undertale-Life-After
 
 ---
 
-### 🚀 第五步：运行游戏
+🚀 第五步：运行游戏
 
 ```bash
 termux-x11 -nocursor -br -iglx -noreset -ac > /dev/null 2>&1 &
@@ -144,7 +146,7 @@ python main.py
 
 ---
 
-## 📂 项目结构概览
+📂 项目结构概览
 
 ```plaintext
 .
@@ -167,148 +169,133 @@ python main.py
 
 ---
 
-## 🎨 资源规范
+🎨 资源规范
 
-| 类型 | 格式建议                  | 备注                     |
-| -- | ----------------------- | ---------------------- |
-| 图像 | PNG 1920×1080 / JPG     | 建议无透明，所有图片包含.nomedial文件 |
-| 音频 | OGG 44.1kHz             | 体积小质量高                |
-| 视频 | MP4 H.264 编码          | 控制在 1080p 内          |
-| 字体 | TTF/OTF (NotoSansSC系列) | 推荐使用Google Noto Sans SC |
+类型 格式建议 备注
+图像 PNG 1920×1080 / JPG 建议无透明，所有图片包含.nomedial文件
+音频 OGG 44.1kHz 体积小质量高
+视频 MP4 H.264 编码 控制在 1080p 内
+字体 TTF/OTF (NotoSansSC系列) 推荐使用Google Noto Sans SC
 
-> 所有资源请放入对应目录，无需修改主程序结构。
+所有资源请放入对应目录，无需修改主程序结构。
 
 ---
 
-## 📈 开发进度说明：v0.0.1-beta
+📈 开发进度说明：v0.0.1-beta
 
-该版本为**开发中的预览构建**，用于资源加载测试、流程演示和反馈收集。
+该版本为开发中的预览构建，用于资源加载测试、流程演示和反馈收集。
 剧情、交互、动画与系统功能仍在持续开发中，实际体验不代表最终品质。
 
-### 核心功能模块
+核心功能模块
 
-1. **主程序 (main.py)**
-   - 游戏状态管理（开场动画 → 版权声明 → 主菜单 → 游戏玩法）
-   - 游戏循环控制
-   - 事件处理系统
-   - 渲染管理
+1. 主程序 (main.py)
+   · 游戏状态管理（开场动画 → 版权声明 → 主菜单 → 游戏玩法）
+   · 游戏循环控制
+   · 事件处理系统
+   · 渲染管理
+2. 开场动画 (intro_animation.py)
+   · 顺序播放多张背景图片
+   · 配合背景音乐
+   · 支持ESC键跳过
+3. 主菜单 (main_menu.py)
+   · 使用pygame绘制的菜单界面
+   · 包含"开始游戏"、"设置"、"退出"选项
+   · 可视化选择器（灵魂之心）
+   · 鼠标和键盘交互支持
+4. 游戏玩法 (gameplay.py)
+   · 角色移动系统（支持上下左右方向）
+   · 触摸摇杆控制（仅移动端）
+   · 角色动画系统（站立/行走动画）
+   · 资源加载系统
+   · 可行走区域定义
 
-2. **开场动画 (intro_animation.py)**
-   - 顺序播放多张背景图片
-   - 配合背景音乐
-   - 支持ESC键跳过
+项目更新说明
 
-3. **主菜单 (main_menu.py)**
-   - 使用pygame绘制的菜单界面
-   - 包含"开始游戏"、"设置"、"退出"选项
-   - 可视化选择器（灵魂之心）
-   - 鼠标和键盘交互支持
-
-4. **游戏玩法 (gameplay.py)**
-   - 角色移动系统（支持上下左右方向）
-   - 触摸摇杆控制（仅移动端）
-   - 角色动画系统（站立/行走动画）
-   - 资源加载系统
-   - 可行走区域定义
-
-### 项目更新说明
-
-我们在此郑重声明：
-
-本项目**仍在持续更新**，但由于核心开发人员的个人事务安排，项目更新速度将明显放缓。我们保证：
-
-- 继续维护现有代码和资源
-- 定期审查 Issues 和 Pull Requests
-- 确保基础功能稳定可用
-
-我们理解玩家社区的期待，并将尽最大努力在条件允许的情况下推进开发。感谢您一直以来的支持与理解！
+项目已解档并重新启动开发。核心开发人员已回归，预计下一次更新将进行剧情类大重构。感谢您一直以来的支持与理解！
 
 ---
 
-## 🔐 隐私政策
+🔐 隐私政策
 
-**版本号**：v1.0
-**更新日期**：2025 年 6 月 8 日
-**开发团队**：BOOM! Studio（原 灰烬重生工作室）
+版本号：v1.0
+更新日期：2025 年 6 月 8 日
+开发团队：BOOM! Studio（原 灰烬重生工作室）
 
 《传说之下：劫后余生》为纯粹的粉丝项目，不含任何网络连接与数据采集行为。
 
-- 不收集、存储或处理任何用户个人信息（包括但不限于姓名、联系方式、设备信息等）
-- 不收集或上传任何用户数据
-- 不联网、不访问服务器
-- 不请求相册、联系人、摄像头、麦克风等敏感权限
-- 本地运行期间不会生成任何可识别用户身份的日志或文件
-- 所有资源离线运行、无广告、无商业行为
+· 不收集、存储或处理任何用户个人信息（包括但不限于姓名、联系方式、设备信息等）
+· 不收集或上传任何用户数据
+· 不联网、不访问服务器
+· 不请求相册、联系人、摄像头、麦克风等敏感权限
+· 本地运行期间不会生成任何可识别用户身份的日志或文件
+· 所有资源离线运行、无广告、无商业行为
 
 如未来版本涉及联网或权限变更，将在更新前明确告知用户。
 
-📧 如有问题可联系：**[gaowange2024@163.com](mailto:gaowange2024@163.com)**
+📧 如有问题可联系：gaowange2024@163.com
 
 ---
 
-## 🔐 Privacy Policy (English)
+🔐 Privacy Policy (English)
 
-**Version**: v1.0
-**Last Updated**: June 8, 2025
-**Developer**: BOOM! Studio (formerly 灰烬重生工作室)
+Version: v1.0
+Last Updated: June 8, 2025
+Developer: BOOM! Studio (formerly 灰烬重生工作室)
 
-This game does **not** collect, store, or process any personal information (including but not limited to name, contact details, device info, etc.).
-It does **not** collect or upload any user data.
-It does **not** connect to the internet or access any servers.
-It does **not** request sensitive permissions such as photos, contacts, camera, or microphone.
+This game does not collect, store, or process any personal information (including but not limited to name, contact details, device info, etc.).
+It does not collect or upload any user data.
+It does not connect to the internet or access any servers.
+It does not request sensitive permissions such as photos, contacts, camera, or microphone.
 No logs or files that can identify users are generated during local gameplay.
-All resources run offline, with **no ads** and **no commercial activity**.
+All resources run offline, with no ads and no commercial activity.
 
 If future versions require network access or permission changes, users will be clearly informed before any update.
 
 We are committed to respecting user privacy.
 
-📧 Contact: **[gaowange2024@163.com](mailto:gaowange2024@163.com)**
+📧 Contact: gaowange2024@163.com
 
 ---
 
-## 📜 许可证授权
+📜 许可证授权
 
-| 资源类型   | 许可证协议                          | 证书文件                          |
-|------------|-----------------------------------|----------------------------------|
-| 程序代码   | [MIT 许可证](LICENSE)              | [查看证书](LICENSE)              |
-| 字体资源   | [SIL OFL 字体授权](LICENSES/OFL.txt) | [查看证书](LICENSES/OFL.txt)     |
-| 美术素材   | [CC BY-NC 4.0 创作共享](LICENSES/CC-BY-NC-4.0.txt) | [查看证书](LICENSES/CC-BY-NC-4.0.txt) |
+资源类型 许可证协议 证书文件
+程序代码 MIT 许可证 查看证书
+字体资源 SIL OFL 字体授权 查看证书
+美术素材 CC BY-NC 4.0 创作共享 查看证书
 
-> 📌 **授权说明**
->
-> - MIT 许可证：允许自由使用、修改和分发代码（禁止商业用途）
-> - SIL OFL：保障字体作品的自由使用和衍生开发
-> - CC BY-NC 4.0：要求署名且禁止商业使用
+📌 授权说明
+
+· MIT 许可证：允许自由使用、修改和分发代码（禁止商业用途）
+· SIL OFL：保障字体作品的自由使用和衍生开发
+· CC BY-NC 4.0：要求署名且禁止商业使用
 
 ---
 
-## 🤝 贡献与支持
+🤝 贡献与支持
 
 欢迎任何形式的参与：
 
-- 报错 / 提建议 → Issues
-- 优化剧情 / 玩法 → Pull Requests
-- 提供音乐、美术、剧本 → BOOM! Studio
+· 报错 / 提建议 → Issues
+· 优化剧情 / 玩法 → Pull Requests
+· 提供音乐、美术、剧本 → BOOM! Studio
 
 ---
 
-## ⚖️ 版权声明
+⚖️ 版权声明
 
-1. **原作版权**
-   本游戏《传说之下：劫后余生》中涉及的《Undertale》原作角色、世界观、剧情核心元素等知识产权，均归 **Toby Fox** 及其关联方所有。
-   _Undertale™ is a registered trademark of Toby Fox._
-   _All original Undertale content copyright © Toby Fox._
-
-2. **衍生内容版权**
-   本项目的 **新增剧情、原创角色、独立美术/音频素材、程序代码** 等衍生内容，版权归 **BOOM! Studio** 所有。
-   _© 2025 BOOM! Studio. All derivative works licensed under [CC BY-NC 4.0](LICENSES/CC-BY-NC-4.0.txt) (non-commercial)._
-
-3. **粉丝项目性质**
+1. 原作版权
+   本游戏《传说之下：劫后余生》中涉及的《Undertale》原作角色、世界观、剧情核心元素等知识产权，均归 Toby Fox 及其关联方所有。
+   Undertale™ is a registered trademark of Toby Fox.
+   All original Undertale content copyright © Toby Fox.
+2. 衍生内容版权
+   本项目的 新增剧情、原创角色、独立美术/音频素材、程序代码 等衍生内容，版权归 BOOM! Studio 所有。
+   © 2025 BOOM! Studio. All derivative works licensed under CC BY-NC 4.0 (non-commercial).
+3. 粉丝项目性质
    本项目为非盈利性粉丝创作，与 Toby Fox 官方无任何隶属、授权或合作关系。
-   _This is an unofficial fan project, not endorsed by the original copyright holder._
+   This is an unofficial fan project, not endorsed by the original copyright holder.
 
 ---
 
-> 💬 感谢所有喜爱 Undertale 的灵魂们——
-> 在这片废墟之后，我们一起重新点燃希望之光。
+💬 感谢所有喜爱 Undertale 的灵魂们——
+在这片废墟之后，我们一起重新点燃希望之光。
