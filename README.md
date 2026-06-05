@@ -6,14 +6,13 @@ Undertale: Survival After Disaster
 <details>
 <summary> 点击查看项目更新日志</summary>
 
-图例说明
-
-标签 含义 时间高亮
-🟢 feat 新功能 3天内（新鲜）
-🔵 perf 性能优化 7天内（近期）
-🟡 fix Bug修复 —
-🟣 refactor 代码重构 —
-📝 docs 文档更新 —
+| 标签 | 含义 | 时间高亮 |
+|:---:|---|---|
+| 🟢 `feat` | 新功能 | 3天内（新鲜） |
+| 🔵 `perf` | 性能优化 | 7天内（近期） |
+| 🟡 `fix` | Bug修复 | — |
+| 🟣 `refactor` | 代码重构 | — |
+| 📝 `docs` | 文档更新 | — |
 
 ---
 
