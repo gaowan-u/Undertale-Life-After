@@ -1,106 +1,87 @@
-# 🎮 传说之下：劫后余生
+🎮 传说之下：劫后余生
 
-**_Undertale: Survival After Disaster_**
-_开发版本 v0.0.1-beta_
+Undertale: Survival After Disaster
+开发版本 v0.0.1-beta
 
 <details>
-<summary>📋 点击查看项目更新日志</summary>
+<summary> 点击查看项目更新日志</summary>
 
-### 图例说明
+图例说明
 
-| 标签 | 含义 | 时间高亮 |
-|:---:|---|---|
-| 🟢 `feat` | 新功能 | 3天内（新鲜） |
-| 🔵 `perf` | 性能优化 | 7天内（近期） |
-| 🟡 `fix` | Bug修复 | — |
-| 🟣 `refactor` | 代码重构 | — |
-| 📝 `docs` | 文档更新 | — |
+标签 含义 时间高亮
+🟢 feat 新功能 3天内（新鲜）
+🔵 perf 性能优化 7天内（近期）
+🟡 fix Bug修复 —
+🟣 refactor 代码重构 —
+📝 docs 文档更新 —
 
 ---
 
-### 项目更新
+项目更新
 
-1. <span style="color:#2ea043">🟢 **feat**：项目已解档，开发重启，预计下次更新将进行剧情类大重构（2026-05-30）</span>
-
-2. <span style="color:#2ea043">📝 **docs**：优化README更新日志，添加类型标签（feat/perf/fix/refactor/docs）和时间高亮功能（2026-02-20）</span>
-
-3. <span style="color:#2ea043">🟣 **refactor**：重构叙事目录结构，分离为中文、英文、日语三个语言子目录。英文和日语翻译均提供两个版本：AI翻译版 + 人工微调版，欢迎反馈意见（2026-02-20）</span>
-
-4. <span style="color:#2ea043">🟢 **feat**：新增入口场景图片 `images/Entrance.png`（2026-02-19）</span>
-
-5. <span style="color:#2ea043">🔵 **perf**：代码优化，添加 `main_menu.py` 返回类型注解，规范化 `setting.py` 代码格式（2026-02-19）</span>
-
-6. <span style="color:#2ea043">🟢 **feat**：新增设置菜单 (`setting.py`)，继承主菜单类实现统一的界面风格，支持音量、画质、控制等设置选项框架（2026-02-17）</span>
-
-7. <span style="color:#2ea043">🟢 **feat**：新增地图边界检测工具 (`MapBoundaryDetector/`)，使用 OpenCV + C++ 实现自动检测地图可行走区域边界，输出 JSON 格式坐标数据（2026-02-17）</span>
-
-8. <span style="color:#2ea043">🟣 **refactor**：重构资源管理系统，新增 `resources.py` 模块，使用单例模式集中管理字体、颜色、路径和遮罩层等共享资源，优化内存使用和加载效率，同时更换主菜单背景音乐（2026-02-17）</span>
-
-9. <span style="color:#2ea043">🟣 **refactor**：删除旧的可行走区域顶点数据，使用新的地图边界检测方案替代（2026-02-17）</span>
-
-10. 🟣 **refactor**：将 PC 优化分支 (feat/pc-optimization) 合并为主分支，统一开发方向（2026-02-12）
-
-11. 🟡 **fix**：修复摇杆与按钮交互冲突，完善存档系统（2026-01-30）
-
-12. 🔵 **perf**：优化了开场动画的退出逻辑，确保按下ESC键能正确跳过动画（2025-11-16）
-
-13. 🟢 **feat**：新增完整的存档系统，支持多存档位管理和角色名称自定义（2025-11-30）
-
-14. 🟢 **feat**：添加存档菜单界面，支持创建、加载和删除存档功能（2025-11-30）
-
-15. 🟢 **feat**：改进主菜单，增加"加载游戏"选项和存档系统整合（2025-11-30）
-
-16. 🟢 **feat**：完善游戏核心功能模块，包括角色移动系统、动画系统和摇杆控制（2025-10-18）
-
-17. 🟢 **feat**：添加数据文件支持(positions.json和walkable_area_vertices.json)（2025-10-18）
-
-18. 🟢 **feat**：增加叙事文本系统，支持多章节剧情结构（2025-10-07）
-
-19. 🔵 **perf**：优化音频系统，在音频设备不可用时退出并提供提示（2025-10-07）
-
-20. 🔵 **perf**：改变加载游戏背景，使其更美观（2025-10-07）
+1. <span style="color:#2ea043">🟣 refactor：完全重构 gameplay.py 模块，采用面向对象的 Player、VirtualJoystick、ActionButtons、GameplaySession 类设计，增加资源安全加载机制（图片缺失时生成占位符），大幅优化代码结构和可维护性（2026-06-05）</span>
+2. <span style="color:#2ea043">🟢 feat：项目已解档，开发重启，预计下次更新将进行剧情类大重构（2026-05-30）</span>
+3. <span style="color:#2ea043">📝 docs：优化README更新日志，添加类型标签（feat/perf/fix/refactor/docs）和时间高亮功能（2026-02-20）</span>
+4. <span style="color:#2ea043">🟣 refactor：重构叙事目录结构，分离为中文、英文、日语三个语言子目录。英文和日语翻译均提供两个版本：AI翻译版 + 人工微调版，欢迎反馈意见（2026-02-20）</span>
+5. <span style="color:#2ea043">🟢 feat：新增入口场景图片 images/Entrance.png（2026-02-19）</span>
+6. <span style="color:#2ea043">🔵 perf：代码优化，添加 main_menu.py 返回类型注解，规范化 setting.py 代码格式（2026-02-19）</span>
+7. <span style="color:#2ea043">🟢 feat：新增设置菜单 (setting.py)，继承主菜单类实现统一的界面风格，支持音量、画质、控制等设置选项框架（2026-02-17）</span>
+8. <span style="color:#2ea043">🟢 feat：新增地图边界检测工具 (MapBoundaryDetector/)，使用 OpenCV + C++ 实现自动检测地图可行走区域边界，输出 JSON 格式坐标数据（2026-02-17）</span>
+9. <span style="color:#2ea043">🟣 refactor：重构资源管理系统，新增 resources.py 模块，使用单例模式集中管理字体、颜色、路径和遮罩层等共享资源，优化内存使用和加载效率，同时更换主菜单背景音乐（2026-02-17）</span>
+10. <span style="color:#2ea043">🟣 refactor：删除旧的可行走区域顶点数据，使用新的地图边界检测方案替代（2026-02-17）</span>
+11. 🟣 refactor：将 PC 优化分支 (feat/pc-optimization) 合并为主分支，统一开发方向（2026-02-12）
+12. 🟡 fix：修复摇杆与按钮交互冲突，完善存档系统（2026-01-30）
+13. 🔵 perf：优化了开场动画的退出逻辑，确保按下ESC键能正确跳过动画（2025-11-16）
+14. 🟢 feat：新增完整的存档系统，支持多存档位管理和角色名称自定义（2025-11-30）
+15. 🟢 feat：添加存档菜单界面，支持创建、加载和删除存档功能（2025-11-30）
+16. 🟢 feat：改进主菜单，增加"加载游戏"选项和存档系统整合（2025-11-30）
+17. 🟢 feat：完善游戏核心功能模块，包括角色移动系统、动画系统和摇杆控制（2025-10-18）
+18. 🟢 feat：添加数据文件支持(positions.json和walkable_area_vertices.json)（2025-10-18）
+19. 🟢 feat：增加叙事文本系统，支持多章节剧情结构（2025-10-07）
+20. 🔵 perf：优化音频系统，在音频设备不可用时退出并提供提示（2025-10-07）
+21. 🔵 perf：改变加载游戏背景，使其更美观（2025-10-07）
 
 </details>
 
-📁 本项目中的素材目录均已包含 `.nomedia` 文件，防止出现在用户图库或播放器中，保护沉浸体验。
-![游戏封面](images/background_5.jpg)
+📁 本项目中的素材目录均已包含 .nomedia 文件，防止出现在用户图库或播放器中，保护沉浸体验。
+images/background_5.jpg
 
 ---
 
-## 🧭 项目简介
+🧭 项目简介
 
 《传说之下：劫后余生》是一款基于 Toby Fox 原作《Undertale》世界观制作的粉丝向剧情游戏。
 游戏继承了原作的独特战斗系统与叙事风格，讲述在一个全新地下世界展开的生还冒险。
 
-由 **BOOM! Studio（原 灰烬重生工作室）** 制作，项目完全开源，面向所有热爱 Undertale 的玩家与开发者。
+由 BOOM! Studio（原 灰烬重生工作室） 制作，项目完全开源，面向所有热爱 Undertale 的玩家与开发者。
 
 ---
 
-## 🌟 游戏特色
+🌟 游戏特色
 
-- 原汁原味的 Undertale 式战斗机制
-- 全新角色设定与原创主线剧情
-- 像素风美术 + 自制音乐
-- 多线道德选择影响故事走向
-
----
-
-## 🛠️ 运行环境
-
-- **平台**：PC (Windows/Linux/macOS) / Android 9.0+
-- **运行环境**：PC端直接运行 / Termux + Termux-X11 (移动端)
-- **开发语言**：Python 3.8+
-- **游戏框架**：Pygame
+· 原汁原味的 Undertale 式战斗机制
+· 全新角色设定与原创主线剧情
+· 像素风美术 + 自制音乐
+· 多线道德选择影响故事走向
 
 ---
 
-## 📦 安装指南（适配 Termux 原生环境）
+🛠️ 运行环境
 
-请先通过 [F-Droid](https://f-droid.org/) 安装最新版 Termux 与 Termux-X11。
+· 平台：PC (Windows/Linux/macOS) / Android 9.0+
+· 运行环境：PC端直接运行 / Termux + Termux-X11 (移动端)
+· 开发语言：Python 3.8+
+· 游戏框架：Pygame
 
 ---
 
-### 🧱 第一步：安装系统依赖
+安装指南（适配 Termux 原生环境）
+
+请先通过 F-Droid 安装最新版 Termux 与 Termux-X11。
+
+---
+
+第一步：安装系统依赖
 
 ```bash
 pkg update && pkg upgrade
@@ -112,7 +93,7 @@ pkg install termux-x11-nightly
 
 ---
 
-🐍 第二步：安装 Python 构建环境
+第二步：安装 Python 构建环境
 
 ```bash
 pip install --upgrade pip setuptools wheel cython
@@ -120,7 +101,7 @@ pip install --upgrade pip setuptools wheel cython
 
 ---
 
-🎮 第三步：安装 Pygame
+第三步：安装 Pygame
 
 ```bash
 pip install pygame
@@ -128,7 +109,7 @@ pip install pygame
 
 ---
 
-📥 第四步：下载游戏源码
+第四步：下载游戏源码
 
 ```bash
 git clone https://github.com/gaowan-u/Undertale-Life-After.git
@@ -137,7 +118,7 @@ cd Undertale-Life-After
 
 ---
 
-🚀 第五步：运行游戏
+第五步：运行游戏
 
 ```bash
 termux-x11 -nocursor -br -iglx -noreset -ac > /dev/null 2>&1 &
@@ -169,7 +150,7 @@ python main.py
 
 ---
 
-🎨 资源规范
+资源规范
 
 类型 格式建议 备注
 图像 PNG 1920×1080 / JPG 建议无透明，所有图片包含.nomedial文件
