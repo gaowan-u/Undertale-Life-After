@@ -222,7 +222,7 @@ class SaveMenu:
                 
                 # 检查是否点击了删除按钮（只在非空存档时）
                 if not save_info.get("is_empty"):
-                    delete_rect = pygame.Rect(slot_rect.right - 80, slot_rect.y + 40, 60, 30)
+                    delete_rect = pygame.Rect(slot_rect.right - 90, slot_rect.y + 40, 70, 35)
                     if delete_rect.collidepoint(event.pos):
                         # 确认删除存档
                         if save_system.delete_save(i + 1):

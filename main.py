@@ -10,6 +10,7 @@ import pygame
 import sys
 import warnings
 import math
+import subprocess
 
 # 忽略Pygame的社区警告
 warnings.filterwarnings("ignore", category=UserWarning,
@@ -19,16 +20,52 @@ warnings.filterwarnings("ignore", category=UserWarning,
 
 background_music = "./audios/menu_music.ogg" # 菜单背景音乐
 
+
+def _check_pulse_running() -> bool:
+    """检测 pulseaudio 是否正在运行（带超时）。"""
+    try:
+        result = subprocess.run(
+            ['pactl', 'info'],
+            capture_output=True, text=True, timeout=3
+        )
+        return result.returncode == 0 and "Server Name: pulseaudio" in result.stdout
+    except Exception:
+        return False
+
+
+def _init_audio() -> bool:
+    """初始化音频，失败时调用修复模块尝试启动 pulseaudio。"""
+    # 先确保音频服务在运行，避免 pygame.mixer.init() 阻塞
+    if not _check_pulse_running():
+        print("音频服务未运行，正在尝试自动修复...")
+        try:
+            from Fix_model.fix_pulse import fix_pulseaudio
+            success, msg = fix_pulseaudio()
+            print(msg)
+            if not success:
+                return False
+        except Exception as e:
+            print(f"音频修复模块执行异常: {e}")
+            return False
+
+    try:
+        pygame.mixer.init()
+        pygame.mixer.music.set_volume(0.5)
+        return True
+    except pygame.error:
+        pass
+
+    return False
+
+
 def main() -> NoReturn:
     # --- 初始化 ---
     pygame.init()
-    try:
-        pygame.mixer.init()
-        audio_available = True
-        pygame.mixer.music.set_volume(0.5) # 50%的音量，不够再调
-    except pygame.error:
-        print("请先启动音频服务，否则无法播放。")
-        audio_available = False
+    audio_available = _init_audio()
+    if not audio_available:
+        print("错误：无法初始化音频。")
+        print("请确保音频服务已启动，例如：")
+        print("  pulseaudio --start")
         pygame.quit()
         sys.exit()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -95,7 +132,7 @@ def main() -> NoReturn:
                     action = main_menu.handle_event(event)
                     if action == "start_game":
                         game_state = 'gameplay'
-                        if background_music:
+                        if background_music_playing:
                             pygame.mixer.music.stop()
                             background_music_playing = False
                     elif action == "load_game":

@@ -1,11 +1,6 @@
 import pygame
-import sys
-import os
 import math
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
-
-# 确保能从根目录导入，以便main.py调用
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 class MainMenu:

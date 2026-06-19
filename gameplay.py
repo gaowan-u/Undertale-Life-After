@@ -10,10 +10,14 @@ def safe_load_image(path, fallback_color=(100, 100, 100), size=(100, 100)):
     """安全加载图片，失败则返回纯色占位 Surface"""
     if os.path.exists(path):
         try:
-            return pygame.image.load(path).convert_alpha()
+            surface = pygame.image.load(path)
+            try:
+                return surface.convert_alpha()
+            except pygame.error:
+                return surface
         except pygame.error:
             print(f"[警告] 无法加载图片: {path}")
-    
+
     # 创建占位符
     surface = pygame.Surface(size, pygame.SRCALPHA)
     surface.fill(fallback_color)
@@ -159,6 +163,12 @@ class ActionButtons:
         self.states = {1: 0, 2: 0, 3: 0} # 0: 正常, 1: 按下
         self.pressed = {1: False, 2: False, 3: False, 'back': False}
 
+    def reset_states(self):
+        for k in self.states:
+            self.states[k] = 0
+        for k in self.pressed:
+            self.pressed[k] = False
+
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             pos = event.pos
@@ -237,6 +247,9 @@ class GameplaySession:
         self.keyboard_dir = (dx, dy)
 
     def process(self, events):
+        # 0. 清除上一帧残留的按钮状态（防止退出再进入时误触发）
+        self.buttons.reset_states()
+
         # 1. 处理输入
         for event in events:
             self.joystick.handle_event(event)

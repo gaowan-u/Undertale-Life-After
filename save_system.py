@@ -1,7 +1,7 @@
 import json
 import os
 import pygame
-from intro_animation import screen_width, screen_height
+from resources import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class SaveSystem:
     def __init__(self):
@@ -187,11 +187,16 @@ class SaveSystem:
         """设置玩家名称"""
         self.player_name = name
         if self.current_save_slot:
-            # 如果已有存档，更新存档中的名称
-            save_data = self.load_save(self.current_save_slot)
-            if save_data:
-                save_data["player"]["name"] = name
-                self.save_game({})  # 空游戏状态，只更新名称
+            save_path = self.get_save_file_path(self.current_save_slot)
+            if os.path.exists(save_path):
+                try:
+                    with open(save_path, 'r', encoding='utf-8') as f:
+                        save_data = json.load(f)
+                    save_data["player"]["name"] = name
+                    with open(save_path, 'w', encoding='utf-8') as f:
+                        json.dump(save_data, f, ensure_ascii=False, indent=2)
+                except Exception as e:
+                    print(f"更新存档名称失败: {e}")
 
 
 class NameInputSystem:
@@ -205,12 +210,12 @@ class NameInputSystem:
         self.max_length = 12
         
         # 输入框位置
-        self.input_rect = pygame.Rect(screen_width//2 - 200, screen_height//2, 400, 50)
-        self.title_rect = pygame.Rect(screen_width//2 - 200, screen_height//2 - 100, 400, 60)
+        self.input_rect = pygame.Rect(SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2, 400, 50)
+        self.title_rect = pygame.Rect(SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2 - 100, 400, 60)
         
         # 按钮
-        self.confirm_rect = pygame.Rect(screen_width//2 - 100, screen_height//2 + 80, 200, 50)
-        self.back_rect = pygame.Rect(screen_width//2 - 100, screen_height//2 + 150, 200, 50)
+        self.confirm_rect = pygame.Rect(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 80, 200, 50)
+        self.back_rect = pygame.Rect(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 150, 200, 50)
         
         # 颜色
         self.COLOR_WHITE = (255, 255, 255)
@@ -233,10 +238,10 @@ class NameInputSystem:
             self.cursor_blink_time = current_time
         
         # 半透明渐变背景
-        overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-        for y in range(screen_height):
-            alpha = int(180 * (y / screen_height))
-            pygame.draw.line(overlay, (20, 20, 30, alpha), (0, y), (screen_width, y))
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        for y in range(SCREEN_HEIGHT):
+            alpha = int(180 * (y / SCREEN_HEIGHT))
+            pygame.draw.line(overlay, (20, 20, 30, alpha), (0, y), (SCREEN_WIDTH, y))
         self.screen.blit(overlay, (0, 0))
         
         # 标题 - 添加发光效果
@@ -323,12 +328,12 @@ class NameInputSystem:
         
         # 提示文字
         hint_text = self.font.render(f"最大长度: {self.max_length} 字符", True, self.COLOR_GRAY)
-        hint_pos = (screen_width//2 - hint_text.get_width()//2, screen_height//2 + 220)
+        hint_pos = (SCREEN_WIDTH//2 - hint_text.get_width()//2, SCREEN_HEIGHT//2 + 220)
         self.screen.blit(hint_text, hint_pos)
         
         # 额外提示
         extra_hint_text = self.font.render("支持中英文输入", True, (100, 100, 100))
-        extra_hint_pos = (screen_width//2 - extra_hint_text.get_width()//2, screen_height//2 + 260)
+        extra_hint_pos = (SCREEN_WIDTH//2 - extra_hint_text.get_width()//2, SCREEN_HEIGHT//2 + 260)
         self.screen.blit(extra_hint_text, extra_hint_pos)
     
     def handle_event(self, event):
