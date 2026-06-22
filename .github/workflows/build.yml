@@ -12,6 +12,9 @@ jobs:
   build-android:
     name: Build for Android
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/kivy/buildozer:latest
+      options: --entrypoint /bin/bash
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,18 +22,17 @@ jobs:
       - name: Cache Buildozer global directory
         uses: actions/cache@v4
         with:
-          path: .buildozer_global
+          path: /home/user/.buildozer
           key: buildozer-global-${{ hashFiles('buildozer.spec') }}
 
       - name: Build with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
-        with:
-          workdir: .
-          buildozer_version: stable
+        run: |
+          export HOME=/home/user
+          export PATH=/home/user/.venv/bin:$PATH
+          buildozer android debug
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Undertale-Life-After-APK
-          path: ${{ steps.buildozer.outputs.filename }}
+          path: ./bin/*.apk
