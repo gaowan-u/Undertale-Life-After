@@ -27,6 +27,8 @@ android.permissions =
 android.wakelock = False
 android.allow_backup = True
 
+android.accept_sdk_license = True
+
 p4a.bootstrap = sdl2
 
 [buildozer]
