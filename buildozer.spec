@@ -13,6 +13,7 @@ requirements = python3==3.10.12,hostpython3==3.10.12,pygame
 
 orientation = landscape
 fullscreen = 1
+android.window_flags = android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN | android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
 
 presplash.filename = %(source.dir)s/data/presplash.png
 icon.filename = %(source.dir)s/data/icon.png
