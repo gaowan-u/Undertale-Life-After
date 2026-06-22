@@ -3,6 +3,7 @@ import json
 import os
 import pygame
 from resources import SCREEN_WIDTH, SCREEN_HEIGHT
+from screen_adapter import get_logical_mouse_pos, to_logical
 
 
 class SaveSystem:
@@ -254,7 +255,7 @@ class NameInputSystem:
             pygame.draw.rect(self.screen, self.COLOR_BLUE,
                            (cursor_x, cursor_y, cursor_width, cursor_height))
         
-        mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = get_logical_mouse_pos()
         is_confirm_hover = self.confirm_rect.collidepoint(mouse_pos)
         
         if is_confirm_hover:
@@ -299,18 +300,19 @@ class NameInputSystem:
     
     def handle_event(self, event: pygame.event.Event) -> Optional[str]:
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.input_rect.collidepoint(event.pos):
+            logical_pos = to_logical(event.pos)
+            if self.input_rect.collidepoint(logical_pos):
                 self.active = True
             else:
                 self.active = False
             
-            if self.confirm_rect.collidepoint(event.pos):
+            if self.confirm_rect.collidepoint(logical_pos):
                 if self.input_text.strip():
                     return self.input_text.strip()
                 else:
                     return "Frisk"
             
-            if self.back_rect.collidepoint(event.pos):
+            if self.back_rect.collidepoint(logical_pos):
                 return "cancel"
         
         elif self.active:

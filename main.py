@@ -6,6 +6,7 @@ from save_system import save_system
 from save_menu import SaveMenu
 from setting import Setting
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
+from screen_adapter import get_render_surface, render_to_screen, recreate as recreate_adapter, update as update_adapter, to_logical
 import pygame
 import sys
 import warnings
@@ -80,15 +81,17 @@ def main() -> NoReturn:
         print("  pulseaudio --start")
         pygame.quit()
         sys.exit()
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.SCALED)
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
     init_assets()
     pygame.display.set_caption("传说之下-劫后余生")
+    recreate_adapter(screen)
     clock = pygame.time.Clock()
     # --- 游戏状态和组件 ---
     game_state = 'intro'
-    main_menu = MainMenu(screen)
-    save_menu = SaveMenu(screen)
-    setting_menu = Setting(screen)
+    render_surface = get_render_surface()
+    main_menu = MainMenu(render_surface)
+    save_menu = SaveMenu(render_surface)
+    setting_menu = Setting(render_surface)
     disclaimer_start_time = -1
 
     # 用于在暂停时保留游戏画面
@@ -132,6 +135,11 @@ def main() -> NoReturn:
             for event in events:
                 if event.type == pygame.QUIT:
                     running = False
+
+                if event.type == pygame.VIDEORESIZE:
+                    screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+                    update_adapter(screen.get_size())
+                    continue
 
                 # 状态机事件处理
                 if game_state == 'main_menu':
@@ -179,8 +187,15 @@ def main() -> NoReturn:
                     game_state = 'disclaimer'
                     disclaimer_start_time = pygame.time.get_ticks()
             elif game_state == 'gameplay':
-                gameplay_surface, return_status = gameplay(events)
-                if return_status == "back":
+                try:
+                    gameplay_surface, return_status = gameplay(events)
+                    if return_status == "back":
+                        game_state = 'main_menu'
+                        background_music_playing = False
+                except Exception:
+                    import traceback
+                    traceback.print_exc()
+                    print("游戏会话异常终止，返回主菜单")
                     game_state = 'main_menu'
                     background_music_playing = False
 
@@ -193,14 +208,12 @@ def main() -> NoReturn:
                 except pygame.error:
                     print(f"警告：无法加载菜单音乐：{background_music}！")
 
-            # --- 渲染 ---
+            # --- 渲染到逻辑 surface (1920×1080) ---
             # 1. 绘制基础背景
             if game_state == 'gameplay':
-                # 绘制游戏场景
-                screen.blit(gameplay_surface, (0, 0))
+                render_surface.blit(gameplay_surface, (0, 0))
             else:
-                # 对于 intro, disclaimer, menu-before-game, 背景是纯黑
-                screen.fill((0, 0, 0))
+                render_surface.fill((0, 0, 0))
 
             # 2. 绘制顶层内容 (声明, 菜单)
             if game_state == 'disclaimer':
@@ -211,7 +224,6 @@ def main() -> NoReturn:
                     # 版权声明动画（优化版）
                     if elapsed < 1000:
                         progress = elapsed / 1000
-                        # 缓动函数：easeOutCubic
                         progress = 1 - (1 - progress) ** 3
                         y_pos = SCREEN_HEIGHT + 80 - \
                             (SCREEN_HEIGHT + 80 - (SCREEN_HEIGHT - 160)) * progress
@@ -223,12 +235,10 @@ def main() -> NoReturn:
                         alpha = 255
                     else:
                         progress = (elapsed - 4000) / 1000
-                        # 缓动函数：easeInCubic
                         progress = progress ** 3
                         y_pos = (SCREEN_HEIGHT - 160) - 100 * progress
                         alpha = int(255 * (1 - progress))
 
-                    # 批量设置透明度并绘制（性能优化）
                     y_offset = int(y_pos)
                     for i in range(len(disclaimer_text)):
                         text_surf = disclaimer_text_surfaces[i]
@@ -237,21 +247,19 @@ def main() -> NoReturn:
                         text_surf.set_alpha(alpha)
                         shadow_surf.set_alpha(int(alpha * 0.6))
 
-                        screen.blit(shadow_surf, (22, y_offset + 2))
-                        screen.blit(text_surf, (20, y_offset))
+                        render_surface.blit(shadow_surf, (22, y_offset + 2))
+                        render_surface.blit(text_surf, (20, y_offset))
                         y_offset += 32
 
             elif game_state == 'main_menu':
-                # 菜单会自己绘制半透明背景，所以它会叠加在当前画面上
                 main_menu.draw()
             elif game_state == 'save_menu':
-                # 存档菜单会自己绘制半透明背景
                 save_menu.draw()
             elif game_state == 'settings':
-                # 设置菜单
                 setting_menu.draw()
 
-            # --- 更新屏幕 ---
+            # --- 缩放 + 黑边适配到屏幕 ---
+            render_to_screen(screen)
             pygame.display.flip()
             clock.tick(60) # 60帧
 

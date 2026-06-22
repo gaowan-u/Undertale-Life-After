@@ -3,6 +3,7 @@ import pygame
 from main_menu import MainMenu
 from resources import SCREEN_WIDTH, SCREEN_HEIGHT
 from gameplay import get_touch_ui_visible
+from screen_adapter import get_logical_mouse_pos
 
 
 class Setting(MainMenu):
@@ -37,7 +38,7 @@ class Setting(MainMenu):
     def handle_event(self, event):
         # 响应鼠标移动事件，更新选中项
         if event.type == pygame.MOUSEMOTION:
-            mouse_pos = pygame.mouse.get_pos()
+            mouse_pos = get_logical_mouse_pos()
             self.selected_index = -1
             for index, rect in enumerate(self.menu_rects):
                 if rect.collidepoint(mouse_pos):

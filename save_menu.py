@@ -1,6 +1,7 @@
 import pygame
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
 from save_system import save_system, NameInputSystem
+from screen_adapter import get_logical_mouse_pos, to_logical
 
 
 class SaveMenu:
@@ -71,7 +72,7 @@ class SaveMenu:
         pygame.draw.rect(self.screen, self.COLOR_BLUE, underline_rect)
         
         # 返回按钮 - 圆角和渐变
-        mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = get_logical_mouse_pos()
         is_back_hover = self.back_rect.collidepoint(mouse_pos)
         
         if is_back_hover:
@@ -211,8 +212,9 @@ class SaveMenu:
         
         # 存档菜单事件处理
         if event.type == pygame.MOUSEBUTTONDOWN:
+            logical_pos = to_logical(event.pos)
             # 返回按钮
-            if self.back_rect.collidepoint(event.pos):
+            if self.back_rect.collidepoint(logical_pos):
                 return "back"
             
             # 存档槽点击
@@ -223,7 +225,7 @@ class SaveMenu:
                 # 检查是否点击了删除按钮（只在非空存档时）
                 if not save_info.get("is_empty"):
                     delete_rect = pygame.Rect(slot_rect.right - 90, slot_rect.y + 40, 70, 35)
-                    if delete_rect.collidepoint(event.pos):
+                    if delete_rect.collidepoint(logical_pos):
                         # 确认删除存档
                         if save_system.delete_save(i + 1):
                             return "save_deleted"
@@ -231,7 +233,7 @@ class SaveMenu:
                             return "delete_error"
                 
                 # 检查是否点击了存档槽
-                if slot_rect.collidepoint(event.pos):
+                if slot_rect.collidepoint(logical_pos):
                     if save_info.get("is_empty"):
                         # 空存档位，开始名称输入
                         self.selected_slot = i + 1  # 存档位从1开始

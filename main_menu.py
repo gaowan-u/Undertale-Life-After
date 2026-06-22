@@ -1,6 +1,8 @@
+from typing import List
 import pygame
 import math
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
+from screen_adapter import get_logical_mouse_pos
 
 
 class MainMenu:
@@ -42,7 +44,7 @@ class MainMenu:
 
     def handle_event(self, event) -> str | None:
         if event.type == pygame.MOUSEMOTION:
-            mouse_pos = pygame.mouse.get_pos()
+            mouse_pos = get_logical_mouse_pos()
             self.selected_index = -1
             for index, rect in enumerate(self.menu_rects):
                 if rect.collidepoint(mouse_pos):
