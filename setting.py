@@ -8,16 +8,31 @@ from gameplay import get_touch_ui_visible
 class Setting(MainMenu):
     def __init__(self, screen):
         super().__init__(screen)
-        # 覆盖菜单项为设置菜单项
         self.menu_items = self.resources.setting_menu_items.copy()
 
-        # 重新计算菜单项位置
         self.menu_rects = []
+        self._item_surfaces = []
+        self._item_selected_surfaces = []
         for index, item in enumerate(self.menu_items):
-            item_text = self.item_font.render(item, True, self.COLOR_WHITE)
-            item_rect = item_text.get_rect(
-                center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + index * 80))
-            self.menu_rects.append(item_rect)
+            if index == 2:
+                # 触控UI 动态项，初始用空白占位，draw 时再按状态渲染
+                surf = pygame.Surface((0, 0))
+                sel_surf = pygame.Surface((0, 0))
+            else:
+                surf = self.item_font.render(item, True, self.COLOR_WHITE)
+                sel_surf = self.item_font.render(item, True, self.COLOR_YELLOW)
+            rect = surf.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + index * 80))
+            self._item_surfaces.append(surf)
+            self._item_selected_surfaces.append(sel_surf)
+            self.menu_rects.append(rect)
+
+        self._title_surface = self.title_font.render("设置", True, self.COLOR_WHITE)
+        self._title_rect = self._title_surface.get_rect(
+            center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4))
+
+        self._last_touch_ui_state: bool | None = None
+        self._touch_item_surf: pygame.Surface | None = None
+        self._touch_item_sel_surf: pygame.Surface | None = None
 
     def handle_event(self, event):
         # 响应鼠标移动事件，更新选中项
@@ -49,36 +64,28 @@ class Setting(MainMenu):
         return None
 
     def draw(self, title="设置"):
-        """绘制设置菜单"""
-        # 绘制半透明遮罩
         self.screen.blit(self.overlay, (0, 0))
+        self.screen.blit(self._title_surface, self._title_rect)
 
-        # 绘制标题
-        title_text = self.title_font.render(title, True, self.COLOR_WHITE)
-        title_rect = title_text.get_rect(
-            center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4))
-        self.screen.blit(title_text, title_rect)
+        current_touch_ui = get_touch_ui_visible()
+        if current_touch_ui != self._last_touch_ui_state:
+            self._last_touch_ui_state = current_touch_ui
+            state_text = "开" if current_touch_ui else "关"
+            display_text = f"{self.menu_items[2]}: {state_text}"
+            self._touch_item_surf = self.item_font.render(display_text, True, self.COLOR_WHITE)
+            self._touch_item_sel_surf = self.item_font.render(display_text, True, self.COLOR_YELLOW)
+            self.menu_rects[2] = self._touch_item_surf.get_rect(
+                center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 2 * 80))
 
-        # 绘制菜单项
-        for index, item in enumerate(self.menu_items):
-            color = self.COLOR_YELLOW if index == self.selected_index else self.COLOR_WHITE
-
+        for index in range(len(self.menu_items)):
             if index == 2:
-                state = "开" if get_touch_ui_visible() else "关"
-                display_text = f"{item}: {state}"
+                surf = self._touch_item_sel_surf if index == self.selected_index else self._touch_item_surf
             else:
-                display_text = item
+                surf = self._item_selected_surfaces[index] if index == self.selected_index else self._item_surfaces[index]
+            self.screen.blit(surf, self.menu_rects[index])
 
-            item_text = self.item_font.render(display_text, True, color)
-            self.menu_rects[index] = item_text.get_rect(
-                center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + index * 80))
-            self.screen.blit(item_text, self.menu_rects[index])
-
-            # 如果当前项被选中，绘制灵魂之心
             if index == self.selected_index:
-                breathing_offset = math.sin(
-                    pygame.time.get_ticks() * 0.005) * 5
+                breathing_offset = math.sin(pygame.time.get_ticks() * 0.005) * 5
                 heart_x = self.menu_rects[index].left - 60 + breathing_offset
-                heart_y = self.menu_rects[index].centery - \
-                    self.heart_selector.get_height() / 2
+                heart_y = self.menu_rects[index].centery - self.heart_selector.get_height() / 2
                 self.screen.blit(self.heart_selector, (heart_x, heart_y))

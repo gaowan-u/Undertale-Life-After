@@ -152,7 +152,7 @@ python main.py
 ├── images/             # 图像资源（.png/.jpg格式）
 ├── videos/             # 视频资源（.mp4格式）
 ├── data/               # 游戏数据文件（JSON格式）
-├── 叙事/               # 剧情文本（Markdown格式，中/英/日）
+├── story/               # 剧情文本（Markdown格式，中/英/日）
 └── LICENSES/           # 各种许可证文件
 ```
 

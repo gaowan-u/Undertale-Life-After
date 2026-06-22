@@ -38,9 +38,9 @@ class SaveSystem:
             },
             "progress": {
                 "current_chapter": 1,
-                "current_scene": "坠落遗迹",
+                "current_scene": "falling_ruins",
                 "completed_chapters": [],
-                "unlocked_areas": ["坠落遗迹"],
+                "unlocked_areas": ["falling_ruins"],
                 "story_flags": {},
                 "choices": {}
             },

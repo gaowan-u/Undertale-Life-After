@@ -56,7 +56,7 @@ BACK_BTN_HEIGHT = 50
 
 def _build_assets() -> Dict[str, pygame.Surface]:
     return {
-        'background': safe_load_image(os.path.join(IMG_DIR, "出生点.png"), (50, 50, 50), (SCREEN_WIDTH, SCREEN_HEIGHT)),
+        'background': safe_load_image(os.path.join(IMG_DIR, "spawn.png"), (50, 50, 50), (SCREEN_WIDTH, SCREEN_HEIGHT)),
         'joystick_base': safe_load_image(os.path.join(IMG_DIR, "cropped_joystick_base.png"), (80, 80, 80), (150, 150)),
         'joystick_top': safe_load_image(os.path.join(IMG_DIR, "cropped_joystick_top.png"), (150, 150, 150), (80, 80)),
         'btn_1': safe_load_image(os.path.join(IMG_DIR, "cropped_button_1.png"), (200, 50, 50), (80, 80)),
@@ -65,16 +65,16 @@ def _build_assets() -> Dict[str, pygame.Surface]:
         'fb_btn_1': safe_load_image(os.path.join(IMG_DIR, "feedback_button_1.png"), (255, 100, 100), (80, 80)),
         'fb_btn_2': safe_load_image(os.path.join(IMG_DIR, "feedback_button_2.png"), (100, 255, 100), (80, 80)),
         'fb_btn_3': safe_load_image(os.path.join(IMG_DIR, "feedback_button_3.png"), (100, 100, 255), (80, 80)),
-        'stand_down': safe_load_image(os.path.join(IMG_DIR, "Frisk_立正.png"), (200, 50, 50), (40, 60)),
-        'walk_down_r': safe_load_image(os.path.join(IMG_DIR, "Frisk_右脚抬.png"), (200, 50, 50), (40, 60)),
-        'walk_down_l': safe_load_image(os.path.join(IMG_DIR, "Frisk_左脚抬.png"), (200, 50, 50), (40, 60)),
-        'stand_up': safe_load_image(os.path.join(IMG_DIR, "Frisk_背着立正.png"), (50, 50, 200), (40, 60)),
-        'walk_up_r': safe_load_image(os.path.join(IMG_DIR, "Frisk_背部右脚抬.png"), (50, 50, 200), (40, 60)),
-        'walk_up_l': safe_load_image(os.path.join(IMG_DIR, "Frisk_背部左脚抬.png"), (50, 50, 200), (40, 60)),
-        'stand_left': safe_load_image(os.path.join(IMG_DIR, "Frisk_左转立正.png"), (50, 200, 50), (40, 60)),
-        'walk_left': safe_load_image(os.path.join(IMG_DIR, "Frisk_左脚走路.png"), (50, 200, 50), (40, 60)),
-        'stand_right': safe_load_image(os.path.join(IMG_DIR, "Frisk_右转立正.png"), (200, 200, 50), (40, 60)),
-        'walk_right': safe_load_image(os.path.join(IMG_DIR, "Frisk_右脚走路.png"), (200, 200, 50), (40, 60)),
+        'stand_down': safe_load_image(os.path.join(IMG_DIR, "frisk_stand.png"), (200, 50, 50), (40, 60)),
+        'walk_down_r': safe_load_image(os.path.join(IMG_DIR, "frisk_foot_right_up.png"), (200, 50, 50), (40, 60)),
+        'walk_down_l': safe_load_image(os.path.join(IMG_DIR, "frisk_foot_left_up.png"), (200, 50, 50), (40, 60)),
+        'stand_up': safe_load_image(os.path.join(IMG_DIR, "frisk_back_stand.png"), (50, 50, 200), (40, 60)),
+        'walk_up_r': safe_load_image(os.path.join(IMG_DIR, "frisk_back_foot_right_up.png"), (50, 50, 200), (40, 60)),
+        'walk_up_l': safe_load_image(os.path.join(IMG_DIR, "frisk_back_foot_left_up.png"), (50, 50, 200), (40, 60)),
+        'stand_left': safe_load_image(os.path.join(IMG_DIR, "frisk_stand_left.png"), (50, 200, 50), (40, 60)),
+        'walk_left': safe_load_image(os.path.join(IMG_DIR, "frisk_walk_left.png"), (50, 200, 50), (40, 60)),
+        'stand_right': safe_load_image(os.path.join(IMG_DIR, "frisk_stand_right.png"), (200, 200, 50), (40, 60)),
+        'walk_right': safe_load_image(os.path.join(IMG_DIR, "frisk_walk_right.png"), (200, 200, 50), (40, 60)),
     }
 
 ASSETS: Dict[str, pygame.Surface] = _build_assets()
@@ -195,6 +195,7 @@ class ActionButtons:
         
         self.states: Dict[int, int] = {1: 0, 2: 0, 3: 0}
         self.pressed: Dict[int | str, bool] = {1: False, 2: False, 3: False, 'back': False}
+        self._back_initialized = False
 
     def reset_states(self) -> None:
         for k in self.states:
@@ -230,26 +231,30 @@ class ActionButtons:
             elif event.key == pygame.K_x: self.states[2], self.pressed[2] = 0, False
             elif event.key == pygame.K_c: self.states[3], self.pressed[3] = 0, False
 
+    def _init_back_surfaces(self) -> None:
+        res = Resources()
+        self._back_normal = pygame.Surface((BACK_BTN_WIDTH, BACK_BTN_HEIGHT), pygame.SRCALPHA)
+        pygame.draw.rect(self._back_normal, (50, 50, 50), (0, 0, BACK_BTN_WIDTH, BACK_BTN_HEIGHT), border_radius=8)
+        pygame.draw.rect(self._back_normal, (100, 100, 100), (0, 0, BACK_BTN_WIDTH, BACK_BTN_HEIGHT), 2, border_radius=8)
+        text = res.font_24.render("返回", True, res.COLOR_WHITE)
+        tx = (BACK_BTN_WIDTH - text.get_width()) // 2
+        ty = (BACK_BTN_HEIGHT - text.get_height()) // 2
+        self._back_normal.blit(text, (tx, ty))
+
+        self._back_hover = pygame.Surface((BACK_BTN_WIDTH, BACK_BTN_HEIGHT), pygame.SRCALPHA)
+        pygame.draw.rect(self._back_hover, (70, 70, 70), (0, 0, BACK_BTN_WIDTH, BACK_BTN_HEIGHT), border_radius=8)
+        pygame.draw.rect(self._back_hover, res.COLOR_BLUE, (0, 0, BACK_BTN_WIDTH, BACK_BTN_HEIGHT), 2, border_radius=8)
+        self._back_hover.blit(text, (tx, ty))
+        self._back_initialized = True
+
     def draw(self, surface: pygame.Surface) -> None:
         surface.blit(ASSETS['fb_btn_1'] if self.states[1] else ASSETS['btn_1'], self.btn1_rect)
         surface.blit(ASSETS['fb_btn_2'] if self.states[2] else ASSETS['btn_2'], self.btn2_rect)
         surface.blit(ASSETS['fb_btn_3'] if self.states[3] else ASSETS['btn_3'], self.btn3_rect)
-        
-        try:
-            res = Resources()
-            font = res.font_24
-            is_hover = self.back_rect.collidepoint(pygame.mouse.get_pos())
-            bg_color = (70, 70, 70) if is_hover else (50, 50, 50)
-            border_color = res.COLOR_BLUE if is_hover else (100, 100, 100)
-            
-            pygame.draw.rect(surface, bg_color, self.back_rect, border_radius=8)
-            pygame.draw.rect(surface, border_color, self.back_rect, 2, border_radius=8)
-            
-            text = font.render("返回", True, res.COLOR_WHITE)
-            surface.blit(text, (self.back_rect.centerx - text.get_width()//2, 
-                                self.back_rect.centery - text.get_height()//2))
-        except Exception:
-            pass
+        if not self._back_initialized:
+            self._init_back_surfaces()
+        is_hover = self.back_rect.collidepoint(pygame.mouse.get_pos())
+        surface.blit(self._back_hover if is_hover else self._back_normal, self.back_rect)
 
 
 # ==========================================
