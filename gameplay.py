@@ -1,3 +1,4 @@
+from typing import Dict, List, Optional, Tuple
 import pygame
 import math
 import os
@@ -6,7 +7,7 @@ from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT, IMAGE_FOLDER
 # ==========================================
 # 1. 资源安全加载器 (防止缺失图片导致崩溃)
 # ==========================================
-def safe_load_image(path, fallback_color=(100, 100, 100), size=(100, 100)):
+def safe_load_image(path: str, fallback_color: Tuple[int, int, int] = (100, 100, 100), size: Tuple[int, int] = (100, 100)) -> pygame.Surface:
     """安全加载图片，失败则返回纯色占位 Surface"""
     if os.path.exists(path):
         try:
@@ -25,92 +26,124 @@ def safe_load_image(path, fallback_color=(100, 100, 100), size=(100, 100)):
 
 # 预定义资源路径
 IMG_DIR = IMAGE_FOLDER
-ASSETS = {
-    'background': safe_load_image(os.path.join(IMG_DIR, "出生点.png"), (50, 50, 50), (SCREEN_WIDTH, SCREEN_HEIGHT)),
-    'joystick_base': safe_load_image(os.path.join(IMG_DIR, "cropped_joystick_base.png"), (80, 80, 80), (150, 150)),
-    'joystick_top': safe_load_image(os.path.join(IMG_DIR, "cropped_joystick_top.png"), (150, 150, 150), (80, 80)),
-    'btn_1': safe_load_image(os.path.join(IMG_DIR, "cropped_button_1.png"), (200, 50, 50), (80, 80)),
-    'btn_2': safe_load_image(os.path.join(IMG_DIR, "cropped_button_2.png"), (50, 200, 50), (80, 80)),
-    'btn_3': safe_load_image(os.path.join(IMG_DIR, "cropped_button_3.png"), (50, 50, 200), (80, 80)),
-    'fb_btn_1': safe_load_image(os.path.join(IMG_DIR, "feedback_button_1.png"), (255, 100, 100), (80, 80)),
-    'fb_btn_2': safe_load_image(os.path.join(IMG_DIR, "feedback_button_2.png"), (100, 255, 100), (80, 80)),
-    'fb_btn_3': safe_load_image(os.path.join(IMG_DIR, "feedback_button_3.png"), (100, 100, 255), (80, 80)),
-    # 玩家动画序列
-    'stand_down': safe_load_image(os.path.join(IMG_DIR, "Frisk_立正.png"), (200, 50, 50), (40, 60)),
-    'walk_down_r': safe_load_image(os.path.join(IMG_DIR, "Frisk_右脚抬.png"), (200, 50, 50), (40, 60)),
-    'walk_down_l': safe_load_image(os.path.join(IMG_DIR, "Frisk_左脚抬.png"), (200, 50, 50), (40, 60)),
-    'stand_up': safe_load_image(os.path.join(IMG_DIR, "Frisk_背着立正.png"), (50, 50, 200), (40, 60)),
-    'walk_up_r': safe_load_image(os.path.join(IMG_DIR, "Frisk_背部右脚抬.png"), (50, 50, 200), (40, 60)),
-    'walk_up_l': safe_load_image(os.path.join(IMG_DIR, "Frisk_背部左脚抬.png"), (50, 50, 200), (40, 60)),
-    'stand_left': safe_load_image(os.path.join(IMG_DIR, "Frisk_左转立正.png"), (50, 200, 50), (40, 60)),
-    'walk_left': safe_load_image(os.path.join(IMG_DIR, "Frisk_左脚走路.png"), (50, 200, 50), (40, 60)),
-    'stand_right': safe_load_image(os.path.join(IMG_DIR, "Frisk_右转立正.png"), (200, 200, 50), (40, 60)),
-    'walk_right': safe_load_image(os.path.join(IMG_DIR, "Frisk_右脚走路.png"), (200, 200, 50), (40, 60)),
-}
+
+# ==========================================
+# 2. 硬编码常量提取
+# ==========================================
+PLAYER_WIDTH = 40
+PLAYER_HEIGHT = 60
+PLAYER_SPEED = 25
+PLAYER_INITIAL_X = 862
+PLAYER_INITIAL_Y = 561
+FRAME_DURATION = 80
+
+JOYSTICK_X = 128
+JOYSTICK_Y_FROM_BOTTOM = 240
+JOYSTICK_RADIUS_RATIO = 0.9
+
+BTN1_X = 1400
+BTN2_X = 1544
+BTN3_X = 1688
+BTN_Y_FROM_BOTTOM = 240
+BTN2_Y_FROM_BOTTOM = 320
+BTN3_Y_FROM_BOTTOM = 400
+
+BACK_BTN_LEFT = 50
+BACK_BTN_TOP = 50
+BACK_BTN_WIDTH = 120
+BACK_BTN_HEIGHT = 50
+
+
+def _build_assets() -> Dict[str, pygame.Surface]:
+    return {
+        'background': safe_load_image(os.path.join(IMG_DIR, "出生点.png"), (50, 50, 50), (SCREEN_WIDTH, SCREEN_HEIGHT)),
+        'joystick_base': safe_load_image(os.path.join(IMG_DIR, "cropped_joystick_base.png"), (80, 80, 80), (150, 150)),
+        'joystick_top': safe_load_image(os.path.join(IMG_DIR, "cropped_joystick_top.png"), (150, 150, 150), (80, 80)),
+        'btn_1': safe_load_image(os.path.join(IMG_DIR, "cropped_button_1.png"), (200, 50, 50), (80, 80)),
+        'btn_2': safe_load_image(os.path.join(IMG_DIR, "cropped_button_2.png"), (50, 200, 50), (80, 80)),
+        'btn_3': safe_load_image(os.path.join(IMG_DIR, "cropped_button_3.png"), (50, 50, 200), (80, 80)),
+        'fb_btn_1': safe_load_image(os.path.join(IMG_DIR, "feedback_button_1.png"), (255, 100, 100), (80, 80)),
+        'fb_btn_2': safe_load_image(os.path.join(IMG_DIR, "feedback_button_2.png"), (100, 255, 100), (80, 80)),
+        'fb_btn_3': safe_load_image(os.path.join(IMG_DIR, "feedback_button_3.png"), (100, 100, 255), (80, 80)),
+        'stand_down': safe_load_image(os.path.join(IMG_DIR, "Frisk_立正.png"), (200, 50, 50), (40, 60)),
+        'walk_down_r': safe_load_image(os.path.join(IMG_DIR, "Frisk_右脚抬.png"), (200, 50, 50), (40, 60)),
+        'walk_down_l': safe_load_image(os.path.join(IMG_DIR, "Frisk_左脚抬.png"), (200, 50, 50), (40, 60)),
+        'stand_up': safe_load_image(os.path.join(IMG_DIR, "Frisk_背着立正.png"), (50, 50, 200), (40, 60)),
+        'walk_up_r': safe_load_image(os.path.join(IMG_DIR, "Frisk_背部右脚抬.png"), (50, 50, 200), (40, 60)),
+        'walk_up_l': safe_load_image(os.path.join(IMG_DIR, "Frisk_背部左脚抬.png"), (50, 50, 200), (40, 60)),
+        'stand_left': safe_load_image(os.path.join(IMG_DIR, "Frisk_左转立正.png"), (50, 200, 50), (40, 60)),
+        'walk_left': safe_load_image(os.path.join(IMG_DIR, "Frisk_左脚走路.png"), (50, 200, 50), (40, 60)),
+        'stand_right': safe_load_image(os.path.join(IMG_DIR, "Frisk_右转立正.png"), (200, 200, 50), (40, 60)),
+        'walk_right': safe_load_image(os.path.join(IMG_DIR, "Frisk_右脚走路.png"), (200, 200, 50), (40, 60)),
+    }
+
+ASSETS: Dict[str, pygame.Surface] = _build_assets()
+
+
+def init_assets() -> None:
+    """在 pygame 初始化后重新加载资源，确保 convert_alpha() 生效"""
+    global ASSETS
+    ASSETS = _build_assets()
 
 # ==========================================
 # 2. 核心类定义
 # ==========================================
 class Player:
-    def __init__(self):
-        self.width, self.height = 40, 60
-        self.rect = pygame.Rect(862, 561, self.width, self.height)
-        self.speed = 25
-        self.direction = 'down'
+    def __init__(self) -> None:
+        self.width, self.height = PLAYER_WIDTH, PLAYER_HEIGHT
+        self.rect = pygame.Rect(PLAYER_INITIAL_X, PLAYER_INITIAL_Y, self.width, self.height)
+        self.speed = PLAYER_SPEED
+        self.direction: str = 'down'
         
-        self.animation_timer = 0
-        self.animation_index = 0
-        self.frame_duration = 80
+        self.animation_timer: int = 0
+        self.animation_index: int = 0
+        self.frame_duration: int = FRAME_DURATION
         
-        self.sequences = {
+        self.sequences: Dict[str, List[str]] = {
             'down':  ['stand_down', 'walk_down_r', 'stand_down', 'walk_down_l'],
             'up':    ['stand_up', 'walk_up_r', 'stand_up', 'walk_up_l'],
             'left':  ['stand_left', 'walk_left', 'stand_left', 'walk_left'],
             'right': ['stand_right', 'walk_right', 'stand_right', 'walk_right']
         }
 
-    def update(self, dx, dy, current_time):
+    def update(self, dx: float, dy: float, current_time: int) -> None:
         is_moving = abs(dx) > 0.1 or abs(dy) > 0.1
         
-        # 更新朝向
         if is_moving:
             if abs(dx) > abs(dy):
                 self.direction = 'right' if dx > 0 else 'left'
             else:
                 self.direction = 'down' if dy > 0 else 'up'
             
-            # 移动位置
             self.rect.x += dx * self.speed
             self.rect.y += dy * self.speed
             
-            # 更新动画帧
             if current_time - self.animation_timer > self.frame_duration:
                 self.animation_timer = current_time
                 self.animation_index = (self.animation_index + 1) % len(self.sequences[self.direction])
         else:
-            # 静止时重置为站立姿态 (第0帧)
             self.animation_index = 0
 
-    def draw(self, surface):
+    def draw(self, surface: pygame.Surface) -> None:
         seq = self.sequences[self.direction]
         img_key = seq[self.animation_index]
         img = ASSETS.get(img_key)
         if img:
-            # 保持脚部对齐
             visual_rect = img.get_rect(midbottom=self.rect.midbottom)
             surface.blit(img, visual_rect)
 
 
 class VirtualJoystick:
-    def __init__(self):
+    def __init__(self) -> None:
         base_img = ASSETS['joystick_base']
-        self.base_rect = base_img.get_rect(topleft=(128, SCREEN_HEIGHT - 240))
-        self.top_rect = base_img.get_rect(center=self.base_rect.center) # 初始居中
-        self.radius = self.base_rect.width / 2 * 0.9
-        self.dragging = False
-        self.direction = (0.0, 0.0)
+        top_img = ASSETS['joystick_top']
+        self.base_rect = base_img.get_rect(topleft=(JOYSTICK_X, SCREEN_HEIGHT - JOYSTICK_Y_FROM_BOTTOM))
+        self.top_rect = top_img.get_rect(center=self.base_rect.center)
+        self.radius = self.base_rect.width / 2 * JOYSTICK_RADIUS_RATIO
+        self.dragging: bool = False
+        self.direction: Tuple[float, float] = (0.0, 0.0)
 
-    def handle_event(self, event):
+    def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.base_rect.collidepoint(event.pos) or self.top_rect.collidepoint(event.pos):
                 self.dragging = True
@@ -122,7 +155,7 @@ class VirtualJoystick:
         elif event.type == pygame.MOUSEMOTION and self.dragging:
             self._update_position(event.pos)
 
-    def _update_position(self, mouse_pos):
+    def _update_position(self, mouse_pos: Tuple[int, int]) -> None:
         dx = mouse_pos[0] - self.base_rect.centerx
         dy = mouse_pos[1] - self.base_rect.centery
         distance = math.hypot(dx, dy)
@@ -140,36 +173,36 @@ class VirtualJoystick:
         else:
             self.direction = (0.0, 0.0)
 
-    def reset(self):
+    def reset(self) -> None:
         self.top_rect.center = self.base_rect.center
         self.direction = (0.0, 0.0)
 
-    def draw(self, surface):
+    def draw(self, surface: pygame.Surface) -> None:
         surface.blit(ASSETS['joystick_base'], self.base_rect)
         surface.blit(ASSETS['joystick_top'], self.top_rect)
 
 
 class ActionButtons:
-    def __init__(self):
+    def __init__(self) -> None:
         btn1 = ASSETS['btn_1']
         btn2 = ASSETS['btn_2']
         btn3 = ASSETS['btn_3']
         
-        self.btn1_rect = btn1.get_rect(topleft=(1400, SCREEN_HEIGHT - 240))
-        self.btn2_rect = btn2.get_rect(topleft=(1544, SCREEN_HEIGHT - 320))
-        self.btn3_rect = btn3.get_rect(topleft=(1688, SCREEN_HEIGHT - 400))
-        self.back_rect = pygame.Rect(50, 50, 120, 50)
+        self.btn1_rect = btn1.get_rect(topleft=(BTN1_X, SCREEN_HEIGHT - BTN_Y_FROM_BOTTOM))
+        self.btn2_rect = btn2.get_rect(topleft=(BTN2_X, SCREEN_HEIGHT - BTN2_Y_FROM_BOTTOM))
+        self.btn3_rect = btn3.get_rect(topleft=(BTN3_X, SCREEN_HEIGHT - BTN3_Y_FROM_BOTTOM))
+        self.back_rect = pygame.Rect(BACK_BTN_LEFT, BACK_BTN_TOP, BACK_BTN_WIDTH, BACK_BTN_HEIGHT)
         
-        self.states = {1: 0, 2: 0, 3: 0} # 0: 正常, 1: 按下
-        self.pressed = {1: False, 2: False, 3: False, 'back': False}
+        self.states: Dict[int, int] = {1: 0, 2: 0, 3: 0}
+        self.pressed: Dict[int | str, bool] = {1: False, 2: False, 3: False, 'back': False}
 
-    def reset_states(self):
+    def reset_states(self) -> None:
         for k in self.states:
             self.states[k] = 0
         for k in self.pressed:
             self.pressed[k] = False
 
-    def handle_event(self, event):
+    def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             pos = event.pos
             if self.btn1_rect.collidepoint(pos):
@@ -197,13 +230,11 @@ class ActionButtons:
             elif event.key == pygame.K_x: self.states[2], self.pressed[2] = 0, False
             elif event.key == pygame.K_c: self.states[3], self.pressed[3] = 0, False
 
-    def draw(self, surface):
-        # 绘制动作按钮
+    def draw(self, surface: pygame.Surface) -> None:
         surface.blit(ASSETS['fb_btn_1'] if self.states[1] else ASSETS['btn_1'], self.btn1_rect)
         surface.blit(ASSETS['fb_btn_2'] if self.states[2] else ASSETS['btn_2'], self.btn2_rect)
         surface.blit(ASSETS['fb_btn_3'] if self.states[3] else ASSETS['btn_3'], self.btn3_rect)
         
-        # 绘制返回按钮
         try:
             res = Resources()
             font = res.font_24
@@ -225,14 +256,14 @@ class ActionButtons:
 # 3. 游戏会话管理器 (替代原全局逻辑)
 # ==========================================
 class GameplaySession:
-    def __init__(self):
+    def __init__(self) -> None:
         self.surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.player = Player()
         self.joystick = VirtualJoystick()
         self.buttons = ActionButtons()
-        self.keyboard_dir = (0.0, 0.0)
+        self.keyboard_dir: Tuple[float, float] = (0.0, 0.0)
 
-    def _update_keyboard_input(self):
+    def _update_keyboard_input(self) -> None:
         keys = pygame.key.get_pressed()
         dx, dy = 0.0, 0.0
         if keys[pygame.K_LEFT] or keys[pygame.K_a]: dx -= 1
@@ -246,28 +277,28 @@ class GameplaySession:
             dy /= length
         self.keyboard_dir = (dx, dy)
 
-    def process(self, events):
-        # 0. 清除上一帧残留的按钮状态（防止退出再进入时误触发）
+    def load_from_save(self, save_data: dict) -> None:
+        pos = save_data.get("position", {})
+        self.player.rect.x = pos.get("x", PLAYER_INITIAL_X)
+        self.player.rect.y = pos.get("y", PLAYER_INITIAL_Y)
+        self.player.direction = pos.get("direction", "down")
+
+    def process(self, events: List[pygame.event.Event]) -> Tuple[pygame.Surface, Optional[str]]:
         self.buttons.reset_states()
 
-        # 1. 处理输入
         for event in events:
             self.joystick.handle_event(event)
             self.buttons.handle_event(event)
             
-            # 检查返回按钮点击 (鼠标)
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if self.buttons.back_rect.collidepoint(event.pos):
                     return self.surface, "back"
                     
-        # 检查返回按钮点击 (键盘状态)
         if self.buttons.pressed['back']:
             return self.surface, "back"
 
-        # 2. 更新逻辑
         self._update_keyboard_input()
         
-        # 优先键盘，其次摇杆
         kx, ky = self.keyboard_dir
         jx, jy = self.joystick.direction
         
@@ -278,7 +309,6 @@ class GameplaySession:
             
         self.player.update(dx, dy, pygame.time.get_ticks())
 
-        # 3. 绘制
         self.surface.fill((0, 0, 0))
         self.surface.blit(ASSETS['background'], (0, 0))
         self.player.draw(self.surface)
@@ -288,11 +318,11 @@ class GameplaySession:
         return self.surface, None
 
 
-# ==========================================
-# 4. 兼容 main.py 的导出接口
-# ==========================================
 _session = GameplaySession()
 
-def gameplay(events):
-    """保持与原 main.py 完全兼容的接口"""
+def gameplay(events: List[pygame.event.Event]) -> Tuple[pygame.Surface, Optional[str]]:
     return _session.process(events)
+
+
+def init_session_from_save(save_data: dict) -> None:
+    _session.load_from_save(save_data)

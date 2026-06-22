@@ -59,11 +59,6 @@ class MainMenu:
                 elif self.selected_index == 3:
                     return "exit"
         
-        # 响应ESC键，用于关闭菜单返回游戏
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                return "resume"
-        
         return None  # 没有发生任何动作
 
     def draw(self, title="主菜单"):
