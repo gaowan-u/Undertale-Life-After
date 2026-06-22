@@ -81,7 +81,10 @@ def main() -> NoReturn:
         print("  pulseaudio --start")
         pygame.quit()
         sys.exit()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+    if 'ANDROID_ARGUMENT' in os.environ:
+        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    else:
+        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
     init_assets()
     pygame.display.set_caption("传说之下-劫后余生")
     recreate_adapter(screen)
@@ -136,7 +139,7 @@ def main() -> NoReturn:
                 if event.type == pygame.QUIT:
                     running = False
 
-                if event.type == pygame.VIDEORESIZE:
+                if event.type == pygame.VIDEORESIZE and 'ANDROID_ARGUMENT' not in os.environ:
                     screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
                     update_adapter(screen.get_size())
                     continue
