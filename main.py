@@ -1,7 +1,7 @@
 from typing import NoReturn
 from main_menu import MainMenu
 from intro_animation import play as play_intro
-from gameplay import gameplay, init_assets, init_session_from_save
+from gameplay import gameplay, init_assets, init_session_from_save, set_touch_ui_visible, get_touch_ui_visible
 from save_system import save_system
 from save_menu import SaveMenu
 from setting import Setting
@@ -10,6 +10,7 @@ import pygame
 import sys
 import warnings
 import math
+import os
 import subprocess
 
 # 忽略Pygame的社区警告
@@ -46,19 +47,30 @@ def _check_pulse_running() -> bool:
 
 
 def _init_audio() -> bool:
-    """初始化音频，失败时调用修复模块尝试启动 pulseaudio。"""
-    # 先确保音频服务在运行，避免 pygame.mixer.init() 阻塞
-    if not _check_pulse_running():
-        print("音频服务未运行，正在尝试自动修复...")
+    """初始化音频。根据运行环境选择不同路径。"""
+    if 'ANDROID_ARGUMENT' in os.environ:
+        # p4a APK 环境，直接初始化
         try:
-            from Fix_model.fix_pulse import fix_pulseaudio
-            success, msg = fix_pulseaudio()
-            print(msg)
-            if not success:
-                return False
-        except Exception as e:
-            print(f"音频修复模块执行异常: {e}")
+            pygame.mixer.init()
+            pygame.mixer.music.set_volume(0.5)
+            return True
+        except pygame.error:
             return False
+
+    # Termux 环境：检测 pulseaudio，必要时自动修复
+    if 'PREFIX' in os.environ:
+        if not _check_pulse_running():
+            print("音频服务未运行，正在尝试自动修复...")
+            try:
+                from Fix_model.fix_pulse import fix_pulseaudio
+                success, msg = fix_pulseaudio()
+                print(msg)
+                if not success:
+                    return False
+            except Exception as e:
+                print(f"音频修复模块执行异常: {e}")
+                return False
+    # else: Windows / macOS / 桌面 Linux，跳过 pulseaudio 检测
 
     try:
         pygame.mixer.init()
@@ -167,10 +179,12 @@ def main() -> NoReturn:
                             print("存档加载失败")
                 elif game_state == 'settings':
                     action = setting_menu.handle_event(event)
-                    if action == "back":
+                    if action == "toggle_touch_ui":
+                        set_touch_ui_visible(not get_touch_ui_visible())
+                    elif action == "back":
                         game_state = 'main_menu'
                 elif game_state == 'gameplay':
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    if event.type == pygame.KEYDOWN and event.key in (pygame.K_ESCAPE, pygame.K_AC_BACK):
                         game_state = 'main_menu'
                         background_music_playing = _play_menu_bgm(audio_available, background_music_playing)
 

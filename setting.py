@@ -2,6 +2,7 @@ import math
 import pygame
 from main_menu import MainMenu
 from resources import SCREEN_WIDTH, SCREEN_HEIGHT
+from gameplay import get_touch_ui_visible
 
 
 class Setting(MainMenu):
@@ -36,7 +37,7 @@ class Setting(MainMenu):
                 elif self.selected_index == 1:
                     return "quality"     # 画质设置
                 elif self.selected_index == 2:
-                    return "control"     # 控制设置
+                    return "toggle_touch_ui"  # 切换触控UI可见性
                 elif self.selected_index == 3:
                     return "back"        # 返回
 
@@ -61,7 +62,16 @@ class Setting(MainMenu):
         # 绘制菜单项
         for index, item in enumerate(self.menu_items):
             color = self.COLOR_YELLOW if index == self.selected_index else self.COLOR_WHITE
-            item_text = self.item_font.render(item, True, color)
+
+            if index == 2:
+                state = "开" if get_touch_ui_visible() else "关"
+                display_text = f"{item}: {state}"
+            else:
+                display_text = item
+
+            item_text = self.item_font.render(display_text, True, color)
+            self.menu_rects[index] = item_text.get_rect(
+                center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + index * 80))
             self.screen.blit(item_text, self.menu_rects[index])
 
             # 如果当前项被选中，绘制灵魂之心

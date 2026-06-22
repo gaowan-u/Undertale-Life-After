@@ -287,33 +287,35 @@ class GameplaySession:
         self.buttons.reset_states()
 
         for event in events:
-            self.joystick.handle_event(event)
-            self.buttons.handle_event(event)
-            
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if self.buttons.back_rect.collidepoint(event.pos):
-                    return self.surface, "back"
-                    
-        if self.buttons.pressed['back']:
+            if _touch_ui_visible:
+                self.joystick.handle_event(event)
+                self.buttons.handle_event(event)
+
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if self.buttons.back_rect.collidepoint(event.pos):
+                        return self.surface, "back"
+
+        if _touch_ui_visible and self.buttons.pressed['back']:
             return self.surface, "back"
 
         self._update_keyboard_input()
-        
+
         kx, ky = self.keyboard_dir
-        jx, jy = self.joystick.direction
-        
+        jx, jy = self.joystick.direction if _touch_ui_visible else (0.0, 0.0)
+
         if abs(kx) > 0.1 or abs(ky) > 0.1:
             dx, dy = kx, ky
         else:
             dx, dy = jx, jy
-            
+
         self.player.update(dx, dy, pygame.time.get_ticks())
 
         self.surface.fill((0, 0, 0))
         self.surface.blit(ASSETS['background'], (0, 0))
         self.player.draw(self.surface)
-        self.joystick.draw(self.surface)
-        self.buttons.draw(self.surface)
+        if _touch_ui_visible:
+            self.joystick.draw(self.surface)
+            self.buttons.draw(self.surface)
 
         return self.surface, None
 
@@ -326,3 +328,13 @@ def gameplay(events: List[pygame.event.Event]) -> Tuple[pygame.Surface, Optional
 
 def init_session_from_save(save_data: dict) -> None:
     _session.load_from_save(save_data)
+
+
+_touch_ui_visible = True
+
+def set_touch_ui_visible(visible: bool) -> None:
+    global _touch_ui_visible
+    _touch_ui_visible = visible
+
+def get_touch_ui_visible() -> bool:
+    return _touch_ui_visible

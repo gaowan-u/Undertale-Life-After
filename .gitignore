@@ -16,6 +16,9 @@ dist/
 *.egg-info/
 *.exe
 *.apk
+.buildozer/
+.buildozer_global/
+bin/
 
 # Log and temp files
 *.log

@@ -1,0 +1,36 @@
+name: Build Android APK
+
+on:
+  push:
+    branches-ignore:
+      - data
+      - gh-pages
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Build for Android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Buildozer global directory
+        uses: actions/cache@v4
+        with:
+          path: .buildozer_global
+          key: buildozer-global-${{ hashFiles('buildozer.spec') }}
+
+      - name: Build with Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
+        with:
+          workdir: .
+          buildozer_version: stable
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Undertale-Life-After-APK
+          path: ${{ steps.buildozer.outputs.filename }}

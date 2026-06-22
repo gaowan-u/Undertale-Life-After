@@ -87,7 +87,7 @@ class Resources:
         # 主菜单项
         self.main_menu_items = ["开始游戏", "加载游戏", "设置", "退出"]
         # 设置菜单项
-        self.setting_menu_items = ["音量", "画质", "控制", "返回"]
+        self.setting_menu_items = ["音量", "画质", "触控UI", "返回"]
 
     # ========== 便捷方法 ==========
 
