@@ -22,18 +22,6 @@ warnings.filterwarnings("ignore", category=UserWarning,
 background_music = "./audios/menu_music.ogg" # 菜单背景音乐
 
 
-def _play_menu_bgm(audio_available: bool, bgm_playing: bool) -> bool:
-    """播放菜单背景音乐，返回新的播放状态"""
-    if not bgm_playing and audio_available:
-        try:
-            pygame.mixer.music.load(background_music)
-            pygame.mixer.music.play(-1)
-            return True
-        except pygame.error:
-            print(f"警告：无法加载菜单音乐：{background_music}！")
-    return bgm_playing
-
-
 def _check_pulse_running() -> bool:
     """检测 pulseaudio 是否正在运行（带超时）。"""
     try:
@@ -92,7 +80,7 @@ def main() -> NoReturn:
         print("  pulseaudio --start")
         pygame.quit()
         sys.exit()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.SCALED)
     init_assets()
     pygame.display.set_caption("传说之下-劫后余生")
     clock = pygame.time.Clock()
@@ -147,7 +135,6 @@ def main() -> NoReturn:
 
                 # 状态机事件处理
                 if game_state == 'main_menu':
-                    background_music_playing = _play_menu_bgm(audio_available, background_music_playing)
                     action = main_menu.handle_event(event)
                     if action == "start_game":
                         game_state = 'gameplay'
@@ -161,12 +148,10 @@ def main() -> NoReturn:
                     elif action == "exit":
                         running = False
                 elif game_state == 'save_menu':
-                    background_music_playing = _play_menu_bgm(audio_available, background_music_playing)
                     action = save_menu.handle_event(event)
                     if action == "back":
                         game_state = 'main_menu'
                     elif action == "load_save":
-                        # 加载存档并开始游戏
                         loaded_data = save_system.load_save(save_menu.selected_slot)
                         if loaded_data:
                             print(f"加载存档 {save_menu.selected_slot}: {loaded_data['player']['name']}")
@@ -186,7 +171,7 @@ def main() -> NoReturn:
                 elif game_state == 'gameplay':
                     if event.type == pygame.KEYDOWN and event.key in (pygame.K_ESCAPE, pygame.K_AC_BACK):
                         game_state = 'main_menu'
-                        background_music_playing = _play_menu_bgm(audio_available, background_music_playing)
+                        background_music_playing = False
 
             # --- 状态逻辑更新 ---
             if game_state == 'intro':
@@ -197,7 +182,16 @@ def main() -> NoReturn:
                 gameplay_surface, return_status = gameplay(events)
                 if return_status == "back":
                     game_state = 'main_menu'
-                    background_music_playing = _play_menu_bgm(audio_available, background_music_playing)
+                    background_music_playing = False
+
+            # 菜单背景音乐自动播放（在事件循环外，确保无事件时也能启动）
+            if game_state in ('main_menu', 'save_menu') and not background_music_playing and audio_available:
+                try:
+                    pygame.mixer.music.load(background_music)
+                    pygame.mixer.music.play(-1)
+                    background_music_playing = True
+                except pygame.error:
+                    print(f"警告：无法加载菜单音乐：{background_music}！")
 
             # --- 渲染 ---
             # 1. 绘制基础背景
