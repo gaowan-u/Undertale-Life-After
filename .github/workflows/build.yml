@@ -41,6 +41,8 @@ jobs:
         run: |
           export HOME=/home/user
           export PATH=/home/user/.venv/bin:$PATH
+          # 清除容器预编译的 hostpython3（避免版本不匹配）
+          rm -rf /home/user/.buildozer/android/platform/*/build/other_builds/hostpython3 2>/dev/null || true
           buildozer android debug
 
       - name: Upload artifacts
