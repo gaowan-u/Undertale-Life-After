@@ -32,9 +32,9 @@ jobs:
           add-apt-repository ppa:deadsnakes/ppa -y
           apt-get update -qq
           apt-get install -y -qq python3.11 python3.11-venv python3.11-dev
+          # 把系统 python3 指向 3.11（p4a 直接读 /usr/bin/python3）
+          update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
           python3.11 -m venv /home/user/.venv
-          # venv 默认没有 python3 链接，创建它让 p4a 能找到正确的 host python
-          ln -sf /home/user/.venv/bin/python /home/user/.venv/bin/python3
           /home/user/.venv/bin/pip install --upgrade "Cython<3.0" wheel pip buildozer setuptools
 
       - name: Build with Buildozer
