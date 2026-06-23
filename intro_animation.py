@@ -97,6 +97,7 @@ def play(screen):  # 添加screen参数
     end_time = 0
     resources_released = False
     skipped = False  # 新增：标记是否被跳过
+    clock = pygame.time.Clock()
 
     try:
         # 显示初始图片 / Show initial image
@@ -167,7 +168,7 @@ def play(screen):  # 添加screen参数
                     screen.blit(images[i], (0, 0))
 
             pygame.display.flip()
-            pygame.time.Clock().tick(60)
+            clock.tick(60)
 
     except KeyboardInterrupt:
         print("程序结束。")  # Program ended

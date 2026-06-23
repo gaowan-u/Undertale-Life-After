@@ -210,6 +210,16 @@ class NameInputSystem:
         self.cursor_visible: bool = True
         self.cursor_blink_time: int = 0
         self.cursor_blink_interval: int = 500
+        
+        self._title_text = self.title_font.render("请输入角色名称", True, self.COLOR_WHITE)
+        self._title_shadow = self.title_font.render("请输入角色名称", True, (0, 0, 0))
+        self._hint_text = self.font.render(f"最大长度: {self.max_length} 字符", True, self.COLOR_GRAY)
+        self._extra_hint = self.font.render("支持中英文输入", True, (100, 100, 100))
+        
+        self._gradient_overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        for y in range(SCREEN_HEIGHT):
+            alpha = int(180 * (y / SCREEN_HEIGHT))
+            pygame.draw.line(self._gradient_overlay, (20, 20, 30, alpha), (0, y), (SCREEN_WIDTH, y))
     
     def draw(self) -> None:
         current_time = pygame.time.get_ticks()
@@ -217,18 +227,11 @@ class NameInputSystem:
             self.cursor_visible = not self.cursor_visible
             self.cursor_blink_time = current_time
         
-        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        for y in range(SCREEN_HEIGHT):
-            alpha = int(180 * (y / SCREEN_HEIGHT))
-            pygame.draw.line(overlay, (20, 20, 30, alpha), (0, y), (SCREEN_WIDTH, y))
-        self.screen.blit(overlay, (0, 0))
+        self.screen.blit(self._gradient_overlay, (0, 0))
         
-        title_text = self.title_font.render("请输入角色名称", True, self.COLOR_WHITE)
-        title_pos = (self.title_rect.centerx - title_text.get_width()//2, self.title_rect.y)
-        
-        title_shadow = self.title_font.render("请输入角色名称", True, (0, 0, 0, 100))
-        self.screen.blit(title_shadow, (title_pos[0] + 2, title_pos[1] + 2))
-        self.screen.blit(title_text, title_pos)
+        title_pos = (self.title_rect.centerx - self._title_text.get_width()//2, self.title_rect.y)
+        self.screen.blit(self._title_shadow, (title_pos[0] + 2, title_pos[1] + 2))
+        self.screen.blit(self._title_text, title_pos)
         
         pygame.draw.rect(self.screen, (30, 30, 40), self.input_rect, border_radius=8)
         
@@ -290,13 +293,11 @@ class NameInputSystem:
                    self.back_rect.centery - back_text.get_height()//2)
         self.screen.blit(back_text, back_pos)
         
-        hint_text = self.font.render(f"最大长度: {self.max_length} 字符", True, self.COLOR_GRAY)
-        hint_pos = (SCREEN_WIDTH//2 - hint_text.get_width()//2, SCREEN_HEIGHT//2 + 220)
-        self.screen.blit(hint_text, hint_pos)
+        hint_pos = (SCREEN_WIDTH//2 - self._hint_text.get_width()//2, SCREEN_HEIGHT//2 + 220)
+        self.screen.blit(self._hint_text, hint_pos)
         
-        extra_hint_text = self.font.render("支持中英文输入", True, (100, 100, 100))
-        extra_hint_pos = (SCREEN_WIDTH//2 - extra_hint_text.get_width()//2, SCREEN_HEIGHT//2 + 260)
-        self.screen.blit(extra_hint_text, extra_hint_pos)
+        extra_hint_pos = (SCREEN_WIDTH//2 - self._extra_hint.get_width()//2, SCREEN_HEIGHT//2 + 260)
+        self.screen.blit(self._extra_hint, extra_hint_pos)
     
     def handle_event(self, event: pygame.event.Event) -> Optional[str]:
         if event.type == pygame.MOUSEBUTTONDOWN:
