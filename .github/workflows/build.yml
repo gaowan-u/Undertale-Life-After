@@ -1,6 +1,11 @@
 name: Build Android APK
 
 on:
+  push:
+    branches-ignore:
+      - data
+      - gh-pages
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -22,7 +27,7 @@ jobs:
 
       - name: Install buildozer dependencies
         run: |
-          /home/user/.venv/bin/pip install "Cython<3.0" wheel setuptools
+          /home/user/.venv/bin/pip install --upgrade "Cython<3.0" wheel pip setuptools
 
       - name: Pre-clone and patch p4a to skip pip upgrade in build venv
         run: |
