@@ -26,17 +26,17 @@ jobs:
 
       - name: Patch p4a to skip pip upgrade in build venv
         run: |
-          /home/user/.venv/bin/python3 << 'PYEOF'
-import pythonforandroid.build as m
-path = m.__file__
-print('Patching', path)
-with open(path) as f:
-    src = f.read()
-src = src.replace('pip install -U pip', 'true')
-with open(path, 'w') as f:
-    f.write(src)
-print('Done')
-PYEOF
+          python3 -c "
+          import pythonforandroid.build as m
+          path = m.__file__
+          print('Patching', path)
+          with open(path) as f:
+              src = f.read()
+          src = src.replace('pip install -U pip', 'true')
+          with open(path, 'w') as f:
+              f.write(src)
+          print('Done')
+          "
 
       - name: Build with Buildozer
         run: |
