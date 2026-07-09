@@ -83,6 +83,19 @@ def main() -> NoReturn:
         sys.exit()
     if 'ANDROID_ARGUMENT' in os.environ:
         screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        # 沉浸模式：隐藏导航栏（虚拟按键），实现真全屏
+        try:
+            from jnius import autoclass
+            PythonActivity = autoclass('org.kivy.android.PythonActivity')
+            activity = PythonActivity.mActivity
+            View = autoclass('android.view.View')
+            activity.getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+            )
+        except Exception:
+            pass
     else:
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
     init_assets()

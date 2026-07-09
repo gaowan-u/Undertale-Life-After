@@ -9,11 +9,11 @@ source.include_exts = py,png,jpg,ogg,ttf,wav,mp3,mp4
 
 version = 0.1
 
-requirements = python3==3.10.12,hostpython3==3.10.12,pygame
+requirements = python3==3.10.12,hostpython3==3.10.12,pygame,pyjnius
 
 orientation = landscape
 fullscreen = 1
-android.window_flags = android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN | android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+android.window_flags = android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN | android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_DISPLAY_CUTOUT_WINDOW
 
 presplash.filename = %(source.dir)s/data/presplash.png
 icon.filename = %(source.dir)s/data/icon.png
