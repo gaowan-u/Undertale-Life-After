@@ -26,7 +26,7 @@ jobs:
 
       - name: Patch p4a to skip pip upgrade in build venv
         run: |
-          python3 -c "
+          /home/user/.venv/bin/python3 -c "
           import glob, sys
           targets = set()
           import pythonforandroid.build as m
