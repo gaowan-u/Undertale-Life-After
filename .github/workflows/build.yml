@@ -24,6 +24,17 @@ jobs:
         run: |
           /home/user/.venv/bin/pip install "Cython<3.0" wheel setuptools
 
+      - name: Patch p4a to skip pip upgrade in build venv
+        run: |
+          P4A_BUILD=$(find /home/user/.venv/lib/python*/site-packages/pythonforandroid/build.py 2>/dev/null | head -1)
+          if [ -n "$P4A_BUILD" ]; then
+            echo "Patching $P4A_BUILD"
+            sed -i '/pip install -U pip/d' "$P4A_BUILD"
+          else
+            echo "WARNING: Could not find pythonforandroid/build.py"
+            find /home/user -name build.py -path "*/pythonforandroid/*" 2>/dev/null
+          fi
+
       - name: Build with Buildozer
         run: |
           export HOME=/home/user
