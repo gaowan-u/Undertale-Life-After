@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional, List
 import json
 import os
 import pygame
-from resources import SCREEN_WIDTH, SCREEN_HEIGHT
+from resources import SCREEN_WIDTH, SCREEN_HEIGHT, FONT_FOLDER
 from screen_adapter import get_logical_mouse_pos, to_logical
 
 
@@ -77,21 +77,26 @@ class SaveSystem:
             print(f"创建存档失败: {e}")
             return False
     
-    def load_save(self, slot_id: int) -> Optional[Dict[str, Any]]:
+    def _read_save_file(self, slot_id: int) -> Optional[Dict[str, Any]]:
+        """读取存档文件，不含任何副作用。"""
         save_path = self.get_save_file_path(slot_id)
         if not os.path.exists(save_path):
             return None
-        
         try:
             with open(save_path, 'r', encoding='utf-8') as f:
-                save_data = json.load(f)
-            
-            self.current_save_slot = slot_id
-            self.player_name = save_data["player"]["name"]
-            return save_data
+                return json.load(f)
         except Exception as e:
-            print(f"加载存档失败: {e}")
+            print(f"读取存档失败: {e}")
             return None
+
+    def load_save(self, slot_id: int) -> Optional[Dict[str, Any]]:
+        save_data = self._read_save_file(slot_id)
+        if save_data is None:
+            return None
+
+        self.current_save_slot = slot_id
+        self.player_name = save_data["player"]["name"]
+        return save_data
     
     def save_game(self, game_state: Dict[str, Any]) -> bool:
         if not self.current_save_slot:
@@ -137,7 +142,7 @@ class SaveSystem:
             return False
     
     def get_save_info(self, slot_id: int) -> Optional[Dict[str, Any]]:
-        save_data = self.load_save(slot_id)
+        save_data = self._read_save_file(slot_id)
         if not save_data:
             return None
         
@@ -190,8 +195,8 @@ class SaveSystem:
 class NameInputSystem:
     def __init__(self, screen: pygame.Surface) -> None:
         self.screen = screen
-        self.font = pygame.font.Font("fonts/NotoSansSC-Regular.ttf", 36)
-        self.title_font = pygame.font.Font("fonts/NotoSansSC-Bold.ttf", 48)
+        self.font = pygame.font.Font(os.path.join(FONT_FOLDER, "NotoSansSC-Regular.ttf"), 36)
+        self.title_font = pygame.font.Font(os.path.join(FONT_FOLDER, "NotoSansSC-Bold.ttf"), 48)
         self.input_text: str = ""
         self.active: bool = True
         self.max_length: int = 12

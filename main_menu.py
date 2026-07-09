@@ -6,7 +6,7 @@ from screen_adapter import get_logical_mouse_pos
 
 
 class MainMenu:
-    def __init__(self, screen):
+    def __init__(self, screen, items=None, title="主菜单"):
         self.screen = screen
         
         self.resources = Resources()
@@ -14,7 +14,7 @@ class MainMenu:
         self.title_font = self.resources.title_font
         self.item_font = self.resources.item_font
         
-        self.menu_items = self.resources.main_menu_items.copy()
+        self.menu_items = items if items is not None else self.resources.main_menu_items.copy()
         self.selected_index = -1
         
         self.COLOR_WHITE = self.resources.COLOR_WHITE
@@ -25,7 +25,9 @@ class MainMenu:
         
         self.heart_selector = self.resources.create_heart_surface(30, self.COLOR_RED)
         
-        # 预渲染所有菜单项文字（避免每帧 font.render）
+        self._build_items(title)
+
+    def _build_items(self, title: str) -> None:
         self.menu_rects = []
         self._item_surfaces: List[pygame.Surface] = []
         self._item_selected_surfaces: List[pygame.Surface] = []
@@ -37,8 +39,7 @@ class MainMenu:
             self._item_selected_surfaces.append(sel_surf)
             self.menu_rects.append(rect)
 
-        # 预渲染标题
-        self._title_surface = self.title_font.render("主菜单", True, self.COLOR_WHITE)
+        self._title_surface = self.title_font.render(title, True, self.COLOR_WHITE)
         self._title_rect = self._title_surface.get_rect(
             center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4))
 
@@ -64,7 +65,7 @@ class MainMenu:
         
         return None
 
-    def draw(self, title="主菜单"):
+    def draw(self):
         self.screen.blit(self.overlay, (0, 0))
         self.screen.blit(self._title_surface, self._title_rect)
         

@@ -1,35 +1,15 @@
 import math
 import pygame
 from main_menu import MainMenu
-from resources import SCREEN_WIDTH, SCREEN_HEIGHT
+from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
 from gameplay import get_touch_ui_visible
 from screen_adapter import get_logical_mouse_pos
 
 
 class Setting(MainMenu):
     def __init__(self, screen):
-        super().__init__(screen)
-        self.menu_items = self.resources.setting_menu_items.copy()
-
-        self.menu_rects = []
-        self._item_surfaces = []
-        self._item_selected_surfaces = []
-        for index, item in enumerate(self.menu_items):
-            if index == 2:
-                # 触控UI 动态项，初始用空白占位，draw 时再按状态渲染
-                surf = pygame.Surface((0, 0))
-                sel_surf = pygame.Surface((0, 0))
-            else:
-                surf = self.item_font.render(item, True, self.COLOR_WHITE)
-                sel_surf = self.item_font.render(item, True, self.COLOR_YELLOW)
-            rect = surf.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + index * 80))
-            self._item_surfaces.append(surf)
-            self._item_selected_surfaces.append(sel_surf)
-            self.menu_rects.append(rect)
-
-        self._title_surface = self.title_font.render("设置", True, self.COLOR_WHITE)
-        self._title_rect = self._title_surface.get_rect(
-            center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4))
+        res = Resources()
+        super().__init__(screen, res.setting_menu_items.copy(), "设置")
 
         self._last_touch_ui_state: bool | None = None
         self._touch_item_surf: pygame.Surface | None = None
@@ -64,7 +44,7 @@ class Setting(MainMenu):
 
         return None
 
-    def draw(self, title="设置"):
+    def draw(self):
         self.screen.blit(self.overlay, (0, 0))
         self.screen.blit(self._title_surface, self._title_rect)
 

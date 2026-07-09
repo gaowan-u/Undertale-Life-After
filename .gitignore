@@ -43,3 +43,6 @@ backup_20260208/
 
 # Agent working memory
 AGENTS.md
+
+# User save files
+saves/

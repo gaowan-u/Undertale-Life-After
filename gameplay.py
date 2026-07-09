@@ -79,8 +79,9 @@ ASSETS: Dict[str, pygame.Surface] = _build_assets()
 
 
 def init_assets() -> None:
-    global ASSETS
+    global ASSETS, _session
     ASSETS = _build_assets()
+    _session = GameplaySession()
 
 
 # ==========================================
@@ -169,7 +170,7 @@ class VirtualJoystick:
 
             if event.type in (pygame.MOUSEBUTTONDOWN, pygame.FINGERDOWN):
                 if event.type == pygame.FINGERDOWN or event.button == 1:
-                    if logical_pos and (self.base_rect.collidepoint(logical_pos) or self.top_rect.collidepoint(logical_pos)):
+                    if self.base_rect.collidepoint(logical_pos) or self.top_rect.collidepoint(logical_pos):
                         self.dragging = True
                         self._touch_finger_id = finger_id
                         self._update_position(logical_pos)
@@ -233,6 +234,7 @@ class ActionButtons:
         """每帧开头调用：清除单帧状态，保留 pressed 供长按检测"""
         for k in self.states:
             self.states[k] = 0
+        self.pressed['back'] = False
 
     def update_hold(self) -> None:
         """每帧事件处理后调用：维持长按状态"""
@@ -380,14 +382,6 @@ class GameplaySession:
             if _touch_ui_visible:
                 self.joystick.handle_event(event)
                 self.buttons.handle_event(event)
-
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    if self.buttons.back_rect.collidepoint(to_logical(event.pos)):
-                        return self.surface, "back"
-                elif event.type == pygame.FINGERDOWN:
-                    logical_pos = _touch_to_logical(event)
-                    if self.buttons.back_rect.collidepoint(logical_pos):
-                        return self.surface, "back"
 
         if _touch_ui_visible and self.buttons.pressed['back']:
             return self.surface, "back"

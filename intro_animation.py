@@ -117,7 +117,7 @@ def play(screen):  # 添加screen参数
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                    # 修复：退出时也返回True，确保主循环能正常结束
+                    pygame.event.post(pygame.event.Event(pygame.QUIT))
                     return True
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
@@ -180,13 +180,10 @@ def play(screen):  # 添加screen参数
         pygame.quit()
         sys.exit()
     finally:
-        # 修复：确保资源被释放，并且如果被跳过也返回True
         images = None
         if audio:
             audio.stop()
-        # 如果是因为跳过而退出，返回True
-        if skipped:
-            return True
 
-    # 默认返回False，只有正常播放完成或被跳过时才返回True
+    if skipped:
+        return True
     return False
