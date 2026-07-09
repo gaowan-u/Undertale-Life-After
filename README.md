@@ -68,8 +68,8 @@ Undertale: Survival After Disaster
 
 ## 🛠️ 运行环境
 
-- **平台**：PC (Windows/Linux/macOS) / Android 9.0+
-- **运行环境**：PC端直接运行 / Termux + Termux-X11 (移动端)
+- **平台**：PC (Windows/Linux/macOS) / Termux (Android)
+- **运行环境**：PC端直接运行 / Termux + Termux-X11 (Android)
 - **开发语言**：Python 3.8+
 - **游戏框架**：Pygame
 

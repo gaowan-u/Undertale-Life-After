@@ -6,7 +6,7 @@ from save_system import save_system
 from save_menu import SaveMenu
 from setting import Setting
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
-from screen_adapter import get_render_surface, render_to_screen, recreate as recreate_adapter, update as update_adapter, to_logical
+from screen_adapter import get_render_surface, render_to_screen, recreate as recreate_adapter, update as update_adapter
 import pygame
 import sys
 import warnings
@@ -37,15 +37,6 @@ def _check_pulse_running() -> bool:
 
 def _init_audio() -> bool:
     """初始化音频。根据运行环境选择不同路径。"""
-    if 'ANDROID_ARGUMENT' in os.environ:
-        # p4a APK 环境，直接初始化
-        try:
-            pygame.mixer.init()
-            pygame.mixer.music.set_volume(0.5)
-            return True
-        except pygame.error:
-            return False
-
     # Termux 环境：检测 pulseaudio，必要时自动修复
     if 'PREFIX' in os.environ:
         if not _check_pulse_running():
@@ -81,23 +72,7 @@ def main() -> NoReturn:
         print("  pulseaudio --start")
         pygame.quit()
         sys.exit()
-    if 'ANDROID_ARGUMENT' in os.environ:
-        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-        # 沉浸模式：隐藏导航栏（虚拟按键），实现真全屏
-        try:
-            from jnius import autoclass
-            PythonActivity = autoclass('org.kivy.android.PythonActivity')
-            activity = PythonActivity.mActivity
-            View = autoclass('android.view.View')
-            activity.getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-            )
-        except Exception:
-            pass
-    else:
-        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
     init_assets()
     pygame.display.set_caption("传说之下-劫后余生")
     recreate_adapter(screen)
@@ -152,7 +127,7 @@ def main() -> NoReturn:
                 if event.type == pygame.QUIT:
                     running = False
 
-                if event.type == pygame.VIDEORESIZE and 'ANDROID_ARGUMENT' not in os.environ:
+                if event.type == pygame.VIDEORESIZE:
                     screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
                     update_adapter(screen.get_size())
                     continue
