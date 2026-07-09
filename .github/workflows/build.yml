@@ -26,7 +26,16 @@ jobs:
 
       - name: Patch p4a to skip pip upgrade in build venv
         run: |
-          /home/user/.venv/bin/python3 scripts/patch_p4a.py
+          for dir in /home/user/.venv /home/user/.buildozer; do
+            find "$dir" -path "*/pythonforandroid/build.py" 2>/dev/null | while read -r f; do
+              if grep -q 'pip install -U pip' "$f" 2>/dev/null; then
+                echo "Patching $f"
+                sed -i 's/pip install -U pip/true/g' "$f"
+              else
+                echo "Skipping $f (already patched or no upgrade line)"
+              fi
+            done
+          done
 
       - name: Build with Buildozer
         run: |
