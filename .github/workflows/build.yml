@@ -24,18 +24,16 @@ jobs:
         run: |
           /home/user/.venv/bin/pip install "Cython<3.0" wheel setuptools
 
-      - name: Patch p4a to skip pip upgrade in build venv
+      - name: Pre-clone and patch p4a to skip pip upgrade in build venv
         run: |
-          for dir in /home/user/.venv /home/user/.buildozer; do
-            find "$dir" -path "*/pythonforandroid/build.py" 2>/dev/null | while read -r f; do
-              if grep -q 'pip install -U pip' "$f" 2>/dev/null; then
-                echo "Patching $f"
-                sed -i 's/pip install -U pip/true/g' "$f"
-              else
-                echo "Skipping $f (already patched or no upgrade line)"
-              fi
-            done
-          done
+          P4A_DIR=".buildozer/android/platform/python-for-android"
+          if [ ! -d "$P4A_DIR" ]; then
+            mkdir -p "$P4A_DIR"
+            git clone --depth 1 -b master --single-branch \
+              https://github.com/kivy/python-for-android.git "$P4A_DIR" 2>&1
+          fi
+          sed -i 's/pip install -U pip/true/g' "$P4A_DIR"/pythonforandroid/build.py
+          echo "P4A patched at $P4A_DIR/pythonforandroid/build.py"
 
       - name: Build with Buildozer
         run: |
