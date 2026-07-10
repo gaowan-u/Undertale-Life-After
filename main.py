@@ -86,7 +86,7 @@ def main() -> NoReturn:
     disclaimer_start_time = -1
 
     # 用于在暂停时保留游戏画面
-    gameplay_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+    gameplay_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT)).convert()
     gameplay_surface.fill((0, 0, 0))  # 默认游戏背景
 
     # --- 版权声明内容 ---
@@ -183,6 +183,9 @@ def main() -> NoReturn:
                     if return_status == "back":
                         game_state = 'main_menu'
                         background_music_playing = False
+                    elif return_status == "exit":
+                        # TODO: 切换到下一场景（素材尚未就绪）
+                        print("[主循环] 收到出口信号 — 场景切换待实现")
                 except Exception:
                     import traceback
                     traceback.print_exc()

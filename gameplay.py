@@ -4,6 +4,7 @@ import math
 import os
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT, IMAGE_FOLDER
 from screen_adapter import get_logical_mouse_pos, to_logical
+from map_boundary import is_point_inside
 
 # ==========================================
 # 1. 资源安全加载器
@@ -51,6 +52,10 @@ BACK_BTN_TOP = 50
 BACK_BTN_WIDTH = 120
 BACK_BTN_HEIGHT = 50
 
+EXIT_ZONE_X = 1900
+EXIT_ZONE_TOP = 676
+EXIT_ZONE_BOTTOM = 839
+
 
 def _build_assets() -> Dict[str, pygame.Surface]:
     return {
@@ -75,7 +80,7 @@ def _build_assets() -> Dict[str, pygame.Surface]:
         'walk_right': safe_load_image(os.path.join(IMG_DIR, "frisk_walk_right.png"), (200, 200, 50), (40, 60)),
     }
 
-ASSETS: Dict[str, pygame.Surface] = _build_assets()
+ASSETS: Dict[str, pygame.Surface] = {}
 
 
 def init_assets() -> None:
@@ -128,8 +133,17 @@ class Player:
             else:
                 self.direction = 'down' if dy > 0 else 'up'
 
-            self.rect.x += dx * self.speed
-            self.rect.y += dy * self.speed
+            cx = self.rect.centerx
+            cy = self.rect.centery
+            new_x = self.rect.x + dx * self.speed
+            new_y = self.rect.y + dy * self.speed
+            new_cx = new_x + self.width // 2
+            new_cy = new_y + self.height // 2
+
+            if is_point_inside(new_cx, cy):
+                self.rect.x = new_x
+            if is_point_inside(cx, new_cy):
+                self.rect.y = new_y
 
             if current_time - self.animation_timer > self.frame_duration:
                 self.animation_timer = current_time
@@ -349,11 +363,12 @@ class ActionButtons:
 # ==========================================
 class GameplaySession:
     def __init__(self) -> None:
-        self.surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT)).convert()
         self.player = Player()
         self.joystick = VirtualJoystick()
         self.buttons = ActionButtons()
         self.keyboard_dir: Tuple[float, float] = (0.0, 0.0)
+        self._exit_triggered: bool = False
 
     def _update_keyboard_input(self) -> None:
         keys = pygame.key.get_pressed()
@@ -399,7 +414,15 @@ class GameplaySession:
 
         self.player.update(dx, dy, pygame.time.get_ticks())
 
-        self.surface.fill((0, 0, 0))
+        at_exit = (self.player.rect.right >= EXIT_ZONE_X
+                   and EXIT_ZONE_TOP <= self.player.rect.centery <= EXIT_ZONE_BOTTOM)
+        if at_exit and dx > 0 and not self._exit_triggered:
+            self._exit_triggered = True
+            print("[出口] 玩家到达右侧出口")
+            return self.surface, "exit"
+        if not at_exit:
+            self._exit_triggered = False
+
         self.surface.blit(ASSETS['background'], (0, 0))
         self.player.draw(self.surface)
         if _touch_ui_visible:
@@ -409,10 +432,13 @@ class GameplaySession:
         return self.surface, None
 
 
-_session = GameplaySession()
+_session: GameplaySession | None = None
 
 
 def gameplay(events: List[pygame.event.Event]) -> Tuple[pygame.Surface, Optional[str]]:
+    global _session
+    if _session is None:
+        _session = GameplaySession()
     return _session.process(events)
 
 

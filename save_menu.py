@@ -52,6 +52,7 @@ class SaveMenu:
         self.name_input_system = None
         self.showing_name_input = False
         self._cached_saves = None
+        self._slot_render_cache: dict[int, dict] = {}
 
     def draw_rounded_rect(self, surface, color, rect, radius=10, width=0):
         """绘制圆角矩形"""
@@ -60,6 +61,7 @@ class SaveMenu:
     def refresh_saves(self):
         """刷新存档列表缓存（在需要时调用）"""
         self._cached_saves = save_system.list_saves()
+        self._slot_render_cache.clear()
 
     def draw(self):
         """绘制存档菜单"""
@@ -121,21 +123,26 @@ class SaveMenu:
                 
                 self.screen.blit(self._new_game_text, (slot_rect.x + 25, slot_rect.y + 60))
             else:
-                name_text = self.font.render(f"玩家: {save_info['player_name']}", True, self.COLOR_WHITE)
-                self.screen.blit(name_text, (slot_rect.x + 25, slot_rect.y + 5))
+                if i not in self._slot_render_cache:
+                    cache = {}
+                    cache['name'] = self.font.render(f"玩家: {save_info['player_name']}", True, self.COLOR_WHITE)
+                    cache['chapter'] = self.small_font.render(f"章节: {save_info['chapter']}", True, (180, 180, 180))
+                    cache['level'] = self.small_font.render(f"等级: {save_info['level']}", True, (180, 180, 180))
+                    if save_info.get('last_played'):
+                        cache['time'] = self.small_font.render(f"时间: {save_info['last_played']}", True, (150, 150, 150))
+                    self._slot_render_cache[i] = cache
+                cache = self._slot_render_cache[i]
+
+                self.screen.blit(cache['name'], (slot_rect.x + 25, slot_rect.y + 5))
                 
                 pygame.draw.rect(self.screen, (60, 60, 70),
                                  (slot_rect.x + 25, slot_rect.y + 45, slot_rect.width - 50, 1))
                 
-                chapter_text = self.small_font.render(f"章节: {save_info['chapter']}", True, (180, 180, 180))
-                self.screen.blit(chapter_text, (slot_rect.x + 25, slot_rect.y + 58))
+                self.screen.blit(cache['chapter'], (slot_rect.x + 25, slot_rect.y + 58))
+                self.screen.blit(cache['level'], (slot_rect.x + 200, slot_rect.y + 58))
                 
-                level_text = self.small_font.render(f"等级: {save_info['level']}", True, (180, 180, 180))
-                self.screen.blit(level_text, (slot_rect.x + 200, slot_rect.y + 58))
-                
-                if save_info['last_played']:
-                    time_text = self.small_font.render(f"时间: {save_info['last_played']}", True, (150, 150, 150))
-                    self.screen.blit(time_text, (slot_rect.x + 25, slot_rect.y + 88))
+                if save_info['last_played'] and 'time' in cache:
+                    self.screen.blit(cache['time'], (slot_rect.x + 25, slot_rect.y + 88))
                 
                 delete_rect = pygame.Rect(slot_rect.right - 90, slot_rect.y + 40, 70, 35)
                 is_delete_hover = delete_rect.collidepoint(mouse_pos)
@@ -187,7 +194,7 @@ class SaveMenu:
                 return "back"
             
             # 存档槽点击
-            saves = save_system.list_saves()
+            saves = self._cached_saves if self._cached_saves is not None else save_system.list_saves()
             for i, slot_rect in enumerate(self.save_slots):
                 save_info = saves[i]
                 
