@@ -43,3 +43,10 @@ AGENTS.md
 
 # User save files
 saves/
+
+# Build tool cache & artifacts
+MapBoundaryDetector/.cache/
+MapBoundaryDetector/compile_commands.json
+
+# Backups
+backup_*/
