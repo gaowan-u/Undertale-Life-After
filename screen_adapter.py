@@ -52,7 +52,7 @@ def get_logical_mouse_pos() -> tuple[float, float]:
 
 def render_to_screen(screen: pygame.Surface) -> None:
     """将逻辑 surface 按比例缩放到屏幕，不足补黑边"""
-    w, h = screen.get_size()
+    w, _ = screen.get_size()
     render_surf = get_render_surface()
 
     scaled_w = round(SCREEN_WIDTH * _scale)
@@ -60,7 +60,7 @@ def render_to_screen(screen: pygame.Surface) -> None:
 
     screen.fill((0, 0, 0))
 
-    if _scale == 1.0:
+    if _scale >= 1.0:
         screen.blit(render_surf, (_offset_x, _offset_y))
     else:
         scaled = pygame.transform.scale(render_surf, (scaled_w, scaled_h))

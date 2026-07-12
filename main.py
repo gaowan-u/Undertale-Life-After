@@ -5,7 +5,7 @@ from gameplay import gameplay, init_assets, init_session_from_save, set_touch_ui
 from save_system import save_system
 from save_menu import SaveMenu
 from setting import Setting
-from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
+from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT, AUDIO_FOLDER
 from screen_adapter import get_render_surface, render_to_screen, recreate as recreate_adapter, update as update_adapter
 import pygame
 import sys
@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore", category=UserWarning,
 
 # 导入其他模块
 
-background_music = "./audios/menu_music.ogg" # 菜单背景音乐
+background_music = os.path.join(AUDIO_FOLDER, "menu_music.ogg")
 
 
 def _check_pulse_running() -> bool:
@@ -84,6 +84,19 @@ def main() -> NoReturn:
     save_menu = SaveMenu(render_surface)
     setting_menu = Setting(render_surface)
     disclaimer_start_time = -1
+
+    DISCLAIMER_DURATION = 5000
+    DISCLAIMER_FADE_IN = 1000
+    DISCLAIMER_DISPLAY_END = 4000
+    DISCLAIMER_FADE_OUT_START = 4000
+    DISCLAIMER_FADE_OUT_DURATION = 1000
+    DISCLAIMER_MID_DURATION = 3000
+    DISCLAIMER_Y_BASE = SCREEN_HEIGHT - 160
+    DISCLAIMER_Y_FADE_IN_OFFSET = 80
+    DISCLAIMER_BOUNCE_AMPLITUDE = 5
+    DISCLAIMER_FADE_OUT_SLIDE = 100
+    DISCLAIMER_LINE_HEIGHT = 32
+    DISCLAIMER_SHADOW_OFFSET = 2
 
     # 用于在暂停时保留游戏画面
     gameplay_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT)).convert()
@@ -167,6 +180,8 @@ def main() -> NoReturn:
                         set_touch_ui_visible(not get_touch_ui_visible())
                     elif action == "back":
                         game_state = 'main_menu'
+                    elif action in ("volume", "quality"):
+                        pass
                 elif game_state == 'gameplay':
                     if event.type == pygame.KEYDOWN and event.key in (pygame.K_ESCAPE, pygame.K_AC_BACK):
                         game_state = 'main_menu'
@@ -212,38 +227,34 @@ def main() -> NoReturn:
             # 2. 绘制顶层内容 (声明, 菜单)
             if game_state == 'disclaimer':
                 elapsed = pygame.time.get_ticks() - disclaimer_start_time
-                if elapsed >= 5000:
+                if elapsed >= DISCLAIMER_DURATION:
                     game_state = 'main_menu'
                 else:
-                    # 版权声明动画（优化版）
-                    if elapsed < 1000:
-                        progress = elapsed / 1000
+                    if elapsed < DISCLAIMER_FADE_IN:
+                        progress = elapsed / DISCLAIMER_FADE_IN
                         progress = 1 - (1 - progress) ** 3
-                        y_pos = SCREEN_HEIGHT + 80 - \
-                            (SCREEN_HEIGHT + 80 - (SCREEN_HEIGHT - 160)) * progress
+                        y_pos = SCREEN_HEIGHT + DISCLAIMER_Y_FADE_IN_OFFSET - \
+                            (SCREEN_HEIGHT + DISCLAIMER_Y_FADE_IN_OFFSET - DISCLAIMER_Y_BASE) * progress
                         alpha = int(255 * progress)
-                    elif elapsed < 4000:
-                        progress = (elapsed - 1000) / 3000
-                        y_pos = SCREEN_HEIGHT - 160 + 5 * \
+                    elif elapsed < DISCLAIMER_DISPLAY_END:
+                        progress = (elapsed - DISCLAIMER_FADE_IN) / DISCLAIMER_MID_DURATION
+                        y_pos = DISCLAIMER_Y_BASE + DISCLAIMER_BOUNCE_AMPLITUDE * \
                             math.sin(progress * 2 * math.pi)
                         alpha = 255
                     else:
-                        progress = (elapsed - 4000) / 1000
+                        progress = (elapsed - DISCLAIMER_FADE_OUT_START) / DISCLAIMER_FADE_OUT_DURATION
                         progress = progress ** 3
-                        y_pos = (SCREEN_HEIGHT - 160) - 100 * progress
+                        y_pos = DISCLAIMER_Y_BASE - DISCLAIMER_FADE_OUT_SLIDE * progress
                         alpha = int(255 * (1 - progress))
 
                     y_offset = int(y_pos)
-                    for i in range(len(disclaimer_text)):
-                        text_surf = disclaimer_text_surfaces[i]
-                        shadow_surf = disclaimer_shadow_surfaces[i]
-
+                    for text_surf, shadow_surf in zip(disclaimer_text_surfaces, disclaimer_shadow_surfaces):
                         text_surf.set_alpha(alpha)
                         shadow_surf.set_alpha(int(alpha * 0.6))
 
-                        render_surface.blit(shadow_surf, (22, y_offset + 2))
+                        render_surface.blit(shadow_surf, (20 + DISCLAIMER_SHADOW_OFFSET, y_offset + DISCLAIMER_SHADOW_OFFSET))
                         render_surface.blit(text_surf, (20, y_offset))
-                        y_offset += 32
+                        y_offset += DISCLAIMER_LINE_HEIGHT
 
             elif game_state == 'main_menu':
                 main_menu.draw()

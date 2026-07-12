@@ -2,6 +2,7 @@
 资源管理单例模块
 集中管理游戏中所有共享资源：字体、颜色、路径、遮罩层等
 """
+import math
 import os
 import pygame
 
@@ -42,30 +43,35 @@ class Resources:
         font_path = os.path.join(FONT_FOLDER, "NotoSansSC-Bold.ttf")
         regular_font_path = os.path.join(FONT_FOLDER, "NotoSansSC-Regular.ttf")
 
-        # 标题字体
-        self.title_font = pygame.font.Font(font_path, 72)
-        self.title_font_medium = pygame.font.Font(font_path, 48)
+        try:
+            self.title_font = pygame.font.Font(font_path, 72)
+            self.title_font_medium = pygame.font.Font(font_path, 48)
+        except (FileNotFoundError, pygame.error):
+            print("警告: 无法加载粗体字体，使用系统默认")
+            self.title_font = pygame.font.Font(None, 72)
+            self.title_font_medium = pygame.font.Font(None, 48)
 
-        # 常规字体
-        self.item_font = pygame.font.Font(font_path, 48)
-        self.font_32 = pygame.font.Font(regular_font_path, 32)
-        self.font_24 = pygame.font.Font(regular_font_path, 24)
+        try:
+            self.font_32 = pygame.font.Font(regular_font_path, 32)
+            self.font_36 = pygame.font.Font(regular_font_path, 36)
+            self.font_24 = pygame.font.Font(regular_font_path, 24)
+        except (FileNotFoundError, pygame.error):
+            print("警告: 无法加载常规字体，使用系统默认")
+            self.font_32 = pygame.font.Font(None, 32)
+            self.font_36 = pygame.font.Font(None, 36)
+            self.font_24 = pygame.font.Font(None, 24)
 
     def _init_colors(self):
         """初始化颜色常量"""
-        # 基础颜色
         self.COLOR_WHITE = (255, 255, 255)
         self.COLOR_BLACK = (0, 0, 0)
         self.COLOR_GRAY = (100, 100, 100)
-        self.COLOR_DARK_GRAY = (50, 50, 50)
 
-        # 强调颜色
         self.COLOR_YELLOW = (255, 255, 0)
         self.COLOR_RED = (255, 0, 0)
         self.COLOR_BLUE = (0, 120, 255)
         self.COLOR_GREEN = (0, 200, 0)
 
-        # UI 背景色
         self.COLOR_BG_DARK = (35, 35, 45)
         self.COLOR_BG_HOVER = (45, 45, 55)
         self.COLOR_BORDER = (80, 80, 90)
@@ -91,12 +97,6 @@ class Resources:
 
     # ========== 便捷方法 ==========
 
-    def render_text(self, text, font, color=None):
-        """渲染文本，返回 Surface"""
-        if color is None:
-            color = self.COLOR_WHITE
-        return font.render(text, True, color)
-
     def create_heart_surface(self, size=30, color=None):
         """创建灵魂之心 Surface"""
         if color is None:
@@ -108,6 +108,10 @@ class Resources:
         ]
         pygame.draw.polygon(heart_surface, color, points)
         return heart_surface
+
+    @staticmethod
+    def breathing_offset(speed=0.005, amplitude=5):
+        return math.sin(pygame.time.get_ticks() * speed) * amplitude
 
 
 # 模块级便捷访问

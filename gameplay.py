@@ -97,9 +97,8 @@ def _touch_to_logical(event: pygame.event.Event) -> tuple[float, float]:
     screen = pygame.display.get_surface()
     if screen is None:
         return (0, 0)
-    w, h = screen.get_size()
-    sx = event.x * w
-    sy = event.y * h
+    sx = event.x * screen.get_width()
+    sy = event.y * screen.get_height()
     return to_logical((sx, sy))
 
 
@@ -241,8 +240,10 @@ class ActionButtons:
 
         self.states: Dict[int, int] = {1: 0, 2: 0, 3: 0}
         self.pressed: Dict[int | str, bool] = {1: False, 2: False, 3: False, 'back': False}
-        self._back_initialized = False
         self._touch_finger_ids: Dict[int | str, int] = {}
+        self._mouse_pressed_btn: int | str | None = None
+
+        self._init_back_surfaces()
 
     def reset_states(self) -> None:
         """每帧开头调用：清除单帧状态，保留 pressed 供长按检测"""
@@ -250,7 +251,7 @@ class ActionButtons:
             self.states[k] = 0
         self.pressed['back'] = False
 
-    def update_hold(self) -> None:
+    def update_hold(self, keys) -> None:
         """每帧事件处理后调用：维持长按状态"""
         mouse_held = pygame.mouse.get_pressed()[0]
 
@@ -267,7 +268,9 @@ class ActionButtons:
             if 'back' not in self._touch_finger_ids and not mouse_held:
                 self.pressed['back'] = False
 
-        keys = pygame.key.get_pressed()
+        if not mouse_held:
+            self._mouse_pressed_btn = None
+
         for key, btn_id in [(pygame.K_z, 1), (pygame.K_x, 2), (pygame.K_c, 3)]:
             if self.pressed.get(btn_id) and not keys[key] and btn_id not in self._touch_finger_ids:
                 self.pressed[btn_id] = False
@@ -307,20 +310,22 @@ class ActionButtons:
 
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             pos = to_logical(event.pos)
-            if self.btn1_rect.collidepoint(pos):
-                self.states[1], self.pressed[1] = 1, True
-            elif self.btn2_rect.collidepoint(pos):
-                self.states[2], self.pressed[2] = 1, True
-            elif self.btn3_rect.collidepoint(pos):
-                self.states[3], self.pressed[3] = 1, True
-            elif self.back_rect.collidepoint(pos):
-                self.pressed['back'] = True
+            btn = self._hit_test(pos)
+            if btn is not None:
+                self._mouse_pressed_btn = btn
+                if isinstance(btn, int):
+                    self.states[btn], self.pressed[btn] = 1, True
+                else:
+                    self.pressed[btn] = True
 
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            self.states[1], self.pressed[1] = 0, False
-            self.states[2], self.pressed[2] = 0, False
-            self.states[3], self.pressed[3] = 0, False
-            self.pressed['back'] = False
+            btn = self._mouse_pressed_btn
+            if btn is not None:
+                if isinstance(btn, int):
+                    self.states[btn], self.pressed[btn] = 0, False
+                else:
+                    self.pressed[btn] = False
+                self._mouse_pressed_btn = None
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_z: self.states[1], self.pressed[1] = 1, True
@@ -346,14 +351,11 @@ class ActionButtons:
         pygame.draw.rect(self._back_hover, (70, 70, 70), (0, 0, BACK_BTN_WIDTH, BACK_BTN_HEIGHT), border_radius=8)
         pygame.draw.rect(self._back_hover, res.COLOR_BLUE, (0, 0, BACK_BTN_WIDTH, BACK_BTN_HEIGHT), 2, border_radius=8)
         self._back_hover.blit(text, (tx, ty))
-        self._back_initialized = True
 
     def draw(self, surface: pygame.Surface) -> None:
         surface.blit(ASSETS['fb_btn_1'] if self.states[1] else ASSETS['btn_1'], self.btn1_rect)
         surface.blit(ASSETS['fb_btn_2'] if self.states[2] else ASSETS['btn_2'], self.btn2_rect)
         surface.blit(ASSETS['fb_btn_3'] if self.states[3] else ASSETS['btn_3'], self.btn3_rect)
-        if not self._back_initialized:
-            self._init_back_surfaces()
         is_hover = self.back_rect.collidepoint(get_logical_mouse_pos())
         surface.blit(self._back_hover if is_hover else self._back_normal, self.back_rect)
 
@@ -370,13 +372,16 @@ class GameplaySession:
         self.keyboard_dir: Tuple[float, float] = (0.0, 0.0)
         self._exit_triggered: bool = False
 
-    def _update_keyboard_input(self) -> None:
-        keys = pygame.key.get_pressed()
+    def _update_keyboard_input(self, keys) -> None:
         dx, dy = 0.0, 0.0
         if keys[pygame.K_LEFT] or keys[pygame.K_a]: dx -= 1
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
         if keys[pygame.K_UP] or keys[pygame.K_w]: dy -= 1
         if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
+
+        if dx == 0 and dy == 0:
+            self.keyboard_dir = (0.0, 0.0)
+            return
 
         if dx != 0 and dy != 0:
             length = math.hypot(dx, dy)
@@ -401,8 +406,9 @@ class GameplaySession:
         if _touch_ui_visible and self.buttons.pressed['back']:
             return self.surface, "back"
 
-        self.buttons.update_hold()
-        self._update_keyboard_input()
+        keys = pygame.key.get_pressed()
+        self.buttons.update_hold(keys)
+        self._update_keyboard_input(keys)
 
         kx, ky = self.keyboard_dir
         jx, jy = self.joystick.direction if _touch_ui_visible else (0.0, 0.0)

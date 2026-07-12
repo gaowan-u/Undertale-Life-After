@@ -1,8 +1,9 @@
 from typing import Any, Dict, Optional, List
 import json
 import os
+import time
 import pygame
-from resources import SCREEN_WIDTH, SCREEN_HEIGHT, FONT_FOLDER
+from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
 from screen_adapter import get_logical_mouse_pos, to_logical
 
 
@@ -101,28 +102,33 @@ class SaveSystem:
     def save_game(self, game_state: Dict[str, Any]) -> bool:
         if not self.current_save_slot:
             return False
-        
+
         save_path = self.get_save_file_path(self.current_save_slot)
         try:
-            save_data = self.load_save(self.current_save_slot)
+            save_data = self._read_save_file(self.current_save_slot)
             if not save_data:
                 return False
-            
+
             save_data["metadata"]["last_played"] = self.get_current_timestamp()
             save_data["metadata"]["play_time"] += game_state.get("play_time", 0)
-            
+
             if "player_position" in game_state:
                 save_data["position"] = game_state["player_position"]
-            
+
             if "player_stats" in game_state:
-                save_data["player"].update(game_state["player_stats"])
-            
+                allowed_keys = {"level", "health", "max_health", "attack", "defense", "gold", "items", "equipment"}
+                for k, v in game_state["player_stats"].items():
+                    if k in allowed_keys:
+                        save_data["player"][k] = v
+
             if "progress" in game_state:
-                save_data["progress"].update(game_state["progress"])
-            
+                for k, v in game_state["progress"].items():
+                    if k in save_data["progress"]:
+                        save_data["progress"][k] = v
+
             with open(save_path, 'w', encoding='utf-8') as f:
                 json.dump(save_data, f, ensure_ascii=False, indent=2)
-            
+
             return True
         except Exception as e:
             print(f"保存游戏失败: {e}")
@@ -174,7 +180,6 @@ class SaveSystem:
         return saves
     
     def get_current_timestamp(self) -> str:
-        import time
         return time.strftime("%Y-%m-%d %H:%M:%S")
     
     def set_player_name(self, name: str) -> None:
@@ -195,36 +200,34 @@ class SaveSystem:
 class NameInputSystem:
     def __init__(self, screen: pygame.Surface) -> None:
         self.screen = screen
-        self.font = pygame.font.Font(os.path.join(FONT_FOLDER, "NotoSansSC-Regular.ttf"), 36)
-        self.title_font = pygame.font.Font(os.path.join(FONT_FOLDER, "NotoSansSC-Bold.ttf"), 48)
+        res = Resources()
+        self.font = res.font_36
+        self.title_font = res.title_font_medium
         self.input_text: str = ""
         self.active: bool = True
         self.max_length: int = 12
-        
+
         self.input_rect = pygame.Rect(SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2, 400, 50)
         self.title_rect = pygame.Rect(SCREEN_WIDTH//2 - 200, SCREEN_HEIGHT//2 - 100, 400, 60)
         self.confirm_rect = pygame.Rect(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 80, 200, 50)
         self.back_rect = pygame.Rect(SCREEN_WIDTH//2 - 100, SCREEN_HEIGHT//2 + 150, 200, 50)
-        
-        self.COLOR_WHITE = (255, 255, 255)
-        self.COLOR_BLACK = (0, 0, 0)
-        self.COLOR_GRAY = (100, 100, 100)
-        self.COLOR_BLUE = (0, 120, 255)
-        self.COLOR_RED = (255, 80, 80)
-        
+
+        self.COLOR_WHITE = res.COLOR_WHITE
+        self.COLOR_BLACK = res.COLOR_BLACK
+        self.COLOR_GRAY = res.COLOR_GRAY
+        self.COLOR_BLUE = res.COLOR_BLUE
+        self.COLOR_SOFT_RED = (255, 80, 80)
+
         self.cursor_visible: bool = True
         self.cursor_blink_time: int = 0
         self.cursor_blink_interval: int = 500
-        
+
         self._title_text = self.title_font.render("请输入角色名称", True, self.COLOR_WHITE)
         self._title_shadow = self.title_font.render("请输入角色名称", True, (0, 0, 0))
         self._hint_text = self.font.render(f"最大长度: {self.max_length} 字符", True, self.COLOR_GRAY)
         self._extra_hint = self.font.render("支持中英文输入", True, (100, 100, 100))
-        
-        self._gradient_overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        for y in range(SCREEN_HEIGHT):
-            alpha = int(180 * (y / SCREEN_HEIGHT))
-            pygame.draw.line(self._gradient_overlay, (20, 20, 30, alpha), (0, y), (SCREEN_WIDTH, y))
+
+        self._gradient_overlay = res.gradient_overlay
     
     def draw(self) -> None:
         current_time = pygame.time.get_ticks()
@@ -286,7 +289,7 @@ class NameInputSystem:
         if is_back_hover:
             back_color = (255, 120, 120)
         else:
-            back_color = self.COLOR_RED
+            back_color = self.COLOR_SOFT_RED
         
         pygame.draw.rect(self.screen, back_color, self.back_rect, border_radius=8)
         

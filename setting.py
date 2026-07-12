@@ -1,4 +1,3 @@
-import math
 import pygame
 from main_menu import MainMenu
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
@@ -66,7 +65,7 @@ class Setting(MainMenu):
             self.screen.blit(surf, self.menu_rects[index])
 
             if index == self.selected_index:
-                breathing_offset = math.sin(pygame.time.get_ticks() * 0.005) * 5
+                breathing_offset = Resources.breathing_offset()
                 heart_x = self.menu_rects[index].left - 60 + breathing_offset
                 heart_y = self.menu_rects[index].centery - self.heart_selector.get_height() / 2
                 self.screen.blit(self.heart_selector, (heart_x, heart_y))

@@ -18,7 +18,6 @@ class SaveMenu:
         
         # 从单例获取颜色
         self.COLOR_WHITE = self.resources.COLOR_WHITE
-        self.COLOR_BLACK = self.resources.COLOR_BLACK
         self.COLOR_GRAY = self.resources.COLOR_GRAY
         self.COLOR_BLUE = self.resources.COLOR_BLUE
         self.COLOR_GREEN = self.resources.COLOR_GREEN
@@ -31,6 +30,12 @@ class SaveMenu:
         self._empty_slot_text = self.font.render("空存档位", True, (150, 150, 150))
         self._new_game_text = self.small_font.render("点击创建新游戏", True, (120, 120, 120))
         self._delete_text = self.small_font.render("删除", True, self.COLOR_WHITE)
+
+        self._underline_rect = pygame.Rect(
+            SCREEN_WIDTH // 2 - 100,
+            70 + self._title_text.get_height() + 5,
+            200, 3
+        )
         
         # 存档槽位置
         self.save_slots = []
@@ -54,10 +59,6 @@ class SaveMenu:
         self._cached_saves = None
         self._slot_render_cache: dict[int, dict] = {}
 
-    def draw_rounded_rect(self, surface, color, rect, radius=10, width=0):
-        """绘制圆角矩形"""
-        pygame.draw.rect(surface, color, rect, width, border_radius=radius)
-
     def refresh_saves(self):
         """刷新存档列表缓存（在需要时调用）"""
         self._cached_saves = save_system.list_saves()
@@ -66,28 +67,23 @@ class SaveMenu:
     def draw(self):
         """绘制存档菜单"""
         self.screen.blit(self.resources.gradient_overlay, (0, 0))
-        
+
         title_pos = (SCREEN_WIDTH // 2 - self._title_text.get_width() // 2, 70)
         self.screen.blit(self._title_shadow, (title_pos[0] + 2, title_pos[1] + 2))
         self.screen.blit(self._title_text, title_pos)
-        
-        underline_rect = pygame.Rect(
-            SCREEN_WIDTH // 2 - 100,
-            title_pos[1] + self._title_text.get_height() + 5,
-            200, 3
-        )
-        pygame.draw.rect(self.screen, self.COLOR_BLUE, underline_rect)
-        
+
+        pygame.draw.rect(self.screen, self.COLOR_BLUE, self._underline_rect)
+
         mouse_pos = get_logical_mouse_pos()
         is_back_hover = self.back_rect.collidepoint(mouse_pos)
-        
+
         back_color = (70, 70, 70) if is_back_hover else (50, 50, 50)
-        self.draw_rounded_rect(self.screen, back_color, self.back_rect, 8)
+        pygame.draw.rect(self.screen, back_color, self.back_rect, border_radius=8)
         if is_back_hover:
-            self.draw_rounded_rect(self.screen, self.COLOR_BLUE, self.back_rect, 8, 2)
+            pygame.draw.rect(self.screen, self.COLOR_BLUE, self.back_rect, 2, border_radius=8)
         else:
-            self.draw_rounded_rect(self.screen, (100, 100, 100), self.back_rect, 8, 2)
-        
+            pygame.draw.rect(self.screen, (100, 100, 100), self.back_rect, 2, border_radius=8)
+
         back_pos = (self.back_rect.centerx - self._back_text.get_width() // 2,
                     self.back_rect.centery - self._back_text.get_height() // 2)
         self.screen.blit(self._back_text, back_pos)
@@ -103,9 +99,9 @@ class SaveMenu:
             bg_color = self.resources.COLOR_BG_HOVER if is_hover else self.resources.COLOR_BG_DARK
             border_color = self.COLOR_BLUE if is_hover else self.resources.COLOR_BORDER
             border_width = 3 if is_hover else 2
-            
-            self.draw_rounded_rect(self.screen, bg_color, slot_rect, 12)
-            self.draw_rounded_rect(self.screen, border_color, slot_rect, 12, border_width)
+
+            pygame.draw.rect(self.screen, bg_color, slot_rect, border_radius=12)
+            pygame.draw.rect(self.screen, border_color, slot_rect, border_width, border_radius=12)
             
             if save_info.get("is_empty"):
                 self.screen.blit(self._empty_slot_text, (slot_rect.x + 25, slot_rect.y + 20))
@@ -147,8 +143,8 @@ class SaveMenu:
                 delete_rect = pygame.Rect(slot_rect.right - 90, slot_rect.y + 40, 70, 35)
                 is_delete_hover = delete_rect.collidepoint(mouse_pos)
                 delete_color = (220, 50, 50) if is_delete_hover else (180, 40, 40)
-                
-                self.draw_rounded_rect(self.screen, delete_color, delete_rect, 6)
+
+                pygame.draw.rect(self.screen, delete_color, delete_rect, border_radius=6)
                 delete_pos = (delete_rect.centerx - self._delete_text.get_width() // 2,
                               delete_rect.centery - self._delete_text.get_height() // 2)
                 self.screen.blit(self._delete_text, delete_pos)
@@ -222,8 +218,3 @@ class SaveMenu:
                         return "load_save"
         
         return None
-
-    def update(self):
-        """更新存档菜单状态"""
-        # 这里可以添加一些动画效果
-        pass
