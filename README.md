@@ -18,29 +18,37 @@ Undertale: Survival After Disaster
 
 项目更新
 
-1. <span style="color:#2ea043">🟣 refactor：废弃 APK 打包方案，删除 buildozer.spec、GitHub Actions 构建工作流、相关代码及资源文件（2026-07-09）</span>
-2. <span style="color:#2ea043">🟡 fix：修复多项逻辑 Bug——音频自动修复、按键状态残留、存档改名失效、图片加载时机、按钮点击区域不匹配等（2026-06-19）</span>
-3. <span style="color:#2ea043">🟣 refactor：完全重构 gameplay.py 模块，采用面向对象的 Player、VirtualJoystick、ActionButtons、GameplaySession 类设计，增加资源安全加载机制（图片缺失时生成占位符），大幅优化代码结构和可维护性（2026-06-05）</span>
-4. <span style="color:#2ea043">🟢 feat：项目已解档，开发重启，预计下次更新将进行剧情类大重构（2026-05-30）</span>
-5. <span style="color:#2ea043">📝 docs：优化README更新日志，添加类型标签（feat/perf/fix/refactor/docs）和时间高亮功能（2026-02-20）</span>
-6. <span style="color:#2ea043">🟣 refactor：重构叙事目录结构，分离为中文、英文、日语三个语言子目录。英文和日语翻译均提供两个版本：AI翻译版 + 人工微调版，欢迎反馈意见（2026-02-20）</span>
-7. <span style="color:#2ea043">🟢 feat：新增入口场景图片 images/Entrance.png（2026-02-19）</span>
-8. <span style="color:#2ea043">🔵 perf：代码优化，添加 main_menu.py 返回类型注解，规范化 setting.py 代码格式（2026-02-19）</span>
-9. <span style="color:#2ea043">🟢 feat：新增设置菜单 (setting.py)，继承主菜单类实现统一的界面风格，支持音量、画质、控制等设置选项框架（2026-02-17）</span>
-10. <span style="color:#2ea043">🟢 feat：新增地图边界检测工具 (MapBoundaryDetector/)，使用 OpenCV + C++ 实现自动检测地图可行走区域边界，输出 JSON 格式坐标数据（2026-02-17）</span>
-11. <span style="color:#2ea043">🟣 refactor：重构资源管理系统，新增 resources.py 模块，使用单例模式集中管理字体、颜色、路径和遮罩层等共享资源，优化内存使用和加载效率，同时更换主菜单背景音乐（2026-02-17）</span>
-12. <span style="color:#2ea043">🟣 refactor：删除旧的可行走区域顶点数据，使用新的地图边界检测方案替代（2026-02-17）</span>
-13. 🟣 refactor：将 PC 优化分支 (feat/pc-optimization) 合并为主分支，统一开发方向（2026-02-12）
-14. 🟡 fix：修复摇杆与按钮交互冲突，完善存档系统（2026-01-30）
-15. 🔵 perf：优化了开场动画的退出逻辑，确保按下ESC键能正确跳过动画（2025-11-16）
-16. 🟢 feat：新增完整的存档系统，支持多存档位管理和角色名称自定义（2025-11-30）
-17. 🟢 feat：添加存档菜单界面，支持创建、加载和删除存档功能（2025-11-30）
-18. 🟢 feat：改进主菜单，增加"加载游戏"选项和存档系统整合（2025-11-30）
-19. 🟢 feat：完善游戏核心功能模块，包括角色移动系统、动画系统和摇杆控制（2025-10-18）
-20. 🟢 feat：添加数据文件支持(positions.json和walkable_area_vertices.json)（2025-10-18）
-21. 🟢 feat：增加叙事文本系统，支持多章节剧情结构（2025-10-07）
-22. 🔵 perf：优化音频系统，在音频设备不可用时退出并提供提示（2025-10-07）
-23. 🔵 perf：改变加载游戏背景，使其更美观（2025-10-07）
+- <span style="color:#2ea043">🔵 perf：代码优化——save_menu 预计算 delete_rects 消除 draw/handle_event 中重复 Rect 构造，gameplay handle_back_event 使用直接 rect 碰撞检测替代 _hit_test 全区域扫描（2026-07-16）</span>
+- <span style="color:#2ea043">🟡 fix：修复 gameplay.py handle_back_event 方法缩进错误，导致 SyntaxError 文件无法编译（2026-07-16）</span>
+- <span style="color:#2ea043">🟡 fix：触控UI防误关——返回按钮永久可见可点（即使关闭触控UI也不会卡死在游戏里），关闭触控UI需确认弹窗（2026-07-14）</span>
+- <span style="color:#2ea043">🟣 refactor：代码清理与资源管理优化——删除 7 个未使用的 NotoSansSC 字体变体与废弃文件（cache.db/positions.json/begin.mp4），优化触屏/鼠标输入逻辑（_mouse_pressed_btn 精确追踪），开场动画模块级资源缓存避免每帧重复加载，字体加载添加容错回退，存档保存添加 key 白名单校验，边界文件缺失/损坏容错，统一使用 Resources 单例与 breathing_offset 静态方法（2026-07-12）</span>
+- <span style="color:#2ea043">🟣 refactor：废弃 APK 打包方案，删除 buildozer.spec、GitHub Actions 构建工作流、相关代码及资源文件（2026-07-09）</span>
+- <span style="color:#2ea043">🟣 refactor：MainMenu 支持自定义标题/菜单项，Setting 委托 MainMenu 构建菜单消除重复代码，save_system 提取纯读 _read_save_file() 消除 get_save_info 副作用，NameInputSystem 复用 Resources 单例与渐变遮罩（2026-07-09）</span>
+- <span style="color:#2ea043">🔵 perf：性能优化——预渲染静态文本、缓存存档列表、减少 NameInput 渐变每帧重建，避免 draw() 中重复 font.render() 调用（2026-06-23）</span>
+- <span style="color:#2ea043">🟢 feat：Minecraft 风格 Letterbox 缩放 + 多点触控 + 按钮长按——新增 screen_adapter 实现 1920×1080 离屏渲染（按宽高比缩放黑边补白），鼠标坐标全局转换到逻辑空间（to_logical/get_logical_mouse_pos），VirtualJoystick/ActionButtons 支持 FINGERDOWN/MOTION/UP 触屏事件与帧轮询长按（2026-06-23）</span>
+- <span style="color:#2ea043">🟡 fix：修复 SCALED 自适应全屏、菜单音乐无事件时不播放（将 BGM 播放从事件循环移至逻辑更新）、Android 竖屏旋转闪退及 p4a resolvelib 不兼容等问题（2026-06-23）</span>
+- <span style="color:#2ea043">🟡 fix：修复多项逻辑 Bug——音频自动修复、按键状态残留、存档改名失效、图片加载时机、按钮点击区域不匹配等（2026-06-19）</span>
+- <span style="color:#2ea043">🟣 refactor：完全重构 gameplay.py 模块，采用面向对象的 Player、VirtualJoystick、ActionButtons、GameplaySession 类设计，增加资源安全加载机制（图片缺失时生成占位符），大幅优化代码结构和可维护性（2026-06-05）</span>
+- <span style="color:#2ea043">🟢 feat：项目已解档，开发重启，预计下次更新将进行剧情类大重构（2026-05-30）</span>
+- <span style="color:#2ea043">📝 docs：优化README更新日志，添加类型标签（feat/perf/fix/refactor/docs）和时间高亮功能（2026-02-20）</span>
+- <span style="color:#2ea043">🟣 refactor：重构叙事目录结构，分离为中文、英文、日语三个语言子目录。英文和日语翻译均提供两个版本：AI翻译版 + 人工微调版，欢迎反馈意见（2026-02-20）</span>
+- <span style="color:#2ea043">🟢 feat：新增入口场景图片 images/Entrance.png（2026-02-19）</span>
+- <span style="color:#2ea043">🔵 perf：代码优化，添加 main_menu.py 返回类型注解，规范化 setting.py 代码格式（2026-02-19）</span>
+- <span style="color:#2ea043">🟢 feat：新增设置菜单 (setting.py)，继承主菜单类实现统一的界面风格，支持音量、画质、控制等设置选项框架（2026-02-17）</span>
+- <span style="color:#2ea043">🟢 feat：新增地图边界检测工具 (MapBoundaryDetector/)，使用 OpenCV + C++ 实现自动检测地图可行走区域边界，输出 JSON 格式坐标数据（2026-02-17）</span>
+- <span style="color:#2ea043">🟣 refactor：重构资源管理系统，新增 resources.py 模块，使用单例模式集中管理字体、颜色、路径和遮罩层等共享资源，优化内存使用和加载效率，同时更换主菜单背景音乐（2026-02-17）</span>
+- <span style="color:#2ea043">🟣 refactor：删除旧的可行走区域顶点数据，使用新的地图边界检测方案替代（2026-02-17）</span>
+- 🟣 refactor：将 PC 优化分支 (feat/pc-optimization) 合并为主分支，统一开发方向（2026-02-12）
+- 🟡 fix：修复摇杆与按钮交互冲突，完善存档系统（2026-01-30）
+- 🔵 perf：优化了开场动画的退出逻辑，确保按下ESC键能正确跳过动画（2025-11-16）
+- 🟢 feat：新增完整的存档系统，支持多存档位管理和角色名称自定义（2025-11-30）
+- 🟢 feat：添加存档菜单界面，支持创建、加载和删除存档功能（2025-11-30）
+- 🟢 feat：改进主菜单，增加"加载游戏"选项和存档系统整合（2025-11-30）
+- 🟢 feat：完善游戏核心功能模块，包括角色移动系统、动画系统和摇杆控制（2025-10-18）
+- 🟢 feat：添加数据文件支持(positions.json和walkable_area_vertices.json)（2025-10-18）
+- 🟢 feat：增加叙事文本系统，支持多章节剧情结构（2025-10-07）
+- 🔵 perf：优化音频系统，在音频设备不可用时退出并提供提示（2025-10-07）
+- 🔵 perf：改变加载游戏背景，使其更美观（2025-10-07）
 
 </details>
 

@@ -337,6 +337,27 @@ class ActionButtons:
             elif event.key == pygame.K_x: self.states[2], self.pressed[2] = 0, False
             elif event.key == pygame.K_c: self.states[3], self.pressed[3] = 0, False
 
+    def handle_back_event(self, event: pygame.event.Event) -> None:
+        if event.type in (pygame.FINGERDOWN, pygame.FINGERUP):
+            if event.type == pygame.FINGERDOWN:
+                logical_pos = _touch_to_logical(event)
+                if self.back_rect.collidepoint(logical_pos):
+                    self._touch_finger_ids['back'] = event.finger_id
+                    self.pressed['back'] = True
+            elif event.type == pygame.FINGERUP:
+                if self._touch_finger_ids.get('back') == event.finger_id:
+                    self.pressed['back'] = False
+                    del self._touch_finger_ids['back']
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            pos = to_logical(event.pos)
+            if self.back_rect.collidepoint(pos):
+                self._mouse_pressed_btn = 'back'
+                self.pressed['back'] = True
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if self._mouse_pressed_btn == 'back':
+                self.pressed['back'] = False
+                self._mouse_pressed_btn = None
+
     def _init_back_surfaces(self) -> None:
         res = Resources()
         self._back_normal = pygame.Surface((BACK_BTN_WIDTH, BACK_BTN_HEIGHT), pygame.SRCALPHA)
@@ -352,12 +373,15 @@ class ActionButtons:
         pygame.draw.rect(self._back_hover, res.COLOR_BLUE, (0, 0, BACK_BTN_WIDTH, BACK_BTN_HEIGHT), 2, border_radius=8)
         self._back_hover.blit(text, (tx, ty))
 
+    def _draw_back_button(self, surface: pygame.Surface) -> None:
+        is_hover = self.back_rect.collidepoint(get_logical_mouse_pos())
+        surface.blit(self._back_hover if is_hover else self._back_normal, self.back_rect)
+
     def draw(self, surface: pygame.Surface) -> None:
         surface.blit(ASSETS['fb_btn_1'] if self.states[1] else ASSETS['btn_1'], self.btn1_rect)
         surface.blit(ASSETS['fb_btn_2'] if self.states[2] else ASSETS['btn_2'], self.btn2_rect)
         surface.blit(ASSETS['fb_btn_3'] if self.states[3] else ASSETS['btn_3'], self.btn3_rect)
-        is_hover = self.back_rect.collidepoint(get_logical_mouse_pos())
-        surface.blit(self._back_hover if is_hover else self._back_normal, self.back_rect)
+        self._draw_back_button(surface)
 
 
 # ==========================================
@@ -402,8 +426,10 @@ class GameplaySession:
             if _touch_ui_visible:
                 self.joystick.handle_event(event)
                 self.buttons.handle_event(event)
+            else:
+                self.buttons.handle_back_event(event)
 
-        if _touch_ui_visible and self.buttons.pressed['back']:
+        if self.buttons.pressed['back']:
             return self.surface, "back"
 
         keys = pygame.key.get_pressed()
@@ -434,6 +460,8 @@ class GameplaySession:
         if _touch_ui_visible:
             self.joystick.draw(self.surface)
             self.buttons.draw(self.surface)
+        else:
+            self.buttons._draw_back_button(self.surface)
 
         return self.surface, None
 

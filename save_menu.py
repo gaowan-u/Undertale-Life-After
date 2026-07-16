@@ -48,6 +48,10 @@ class SaveMenu:
                 slot_height
             )
             self.save_slots.append(slot_rect)
+        self._delete_rects = [
+            pygame.Rect(slot_rect.right - 90, slot_rect.y + 40, 70, 35)
+            for slot_rect in self.save_slots
+        ]
         
         # 按钮
         self.back_rect = pygame.Rect(50, 50, 120, 50)
@@ -140,7 +144,7 @@ class SaveMenu:
                 if save_info['last_played'] and 'time' in cache:
                     self.screen.blit(cache['time'], (slot_rect.x + 25, slot_rect.y + 88))
                 
-                delete_rect = pygame.Rect(slot_rect.right - 90, slot_rect.y + 40, 70, 35)
+                delete_rect = self._delete_rects[i]
                 is_delete_hover = delete_rect.collidepoint(mouse_pos)
                 delete_color = (220, 50, 50) if is_delete_hover else (180, 40, 40)
 
@@ -196,7 +200,7 @@ class SaveMenu:
                 
                 # 检查是否点击了删除按钮（只在非空存档时）
                 if not save_info.get("is_empty"):
-                    delete_rect = pygame.Rect(slot_rect.right - 90, slot_rect.y + 40, 70, 35)
+                    delete_rect = self._delete_rects[i]
                     if delete_rect.collidepoint(logical_pos):
                         if save_system.delete_save(i + 1):
                             self.refresh_saves()
