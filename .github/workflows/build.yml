@@ -41,6 +41,10 @@ jobs:
       - name: Build with Nuitka
         shell: bash
         run: |
+          NUITKA_EXTRA=""
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            NUITKA_EXTRA="--windows-dependency-tool=dumpbin"
+          fi
           python -m nuitka --standalone \
             --include-data-dir=images=images \
             --include-data-dir=audios=audios \
@@ -48,6 +52,7 @@ jobs:
             --include-data-dir=data=data \
             --output-dir=dist \
             --output-filename=Undertale-AfterLife \
+            $NUITKA_EXTRA \
             main.py
 
       - name: Verify & Package
