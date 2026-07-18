@@ -1,0 +1,74 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: windows
+            os: windows-latest
+          - target: linux-x86_64
+            os: ubuntu-latest
+          - target: macos
+            os: macos-latest
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install system deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libasound2-dev libpulse-dev patchelf
+
+      - name: Install Python deps
+        run: pip install --upgrade pip pygame nuitka
+
+      - name: Build with Nuitka
+        shell: bash
+        run: |
+          python -m nuitka --standalone \
+            --include-data-dir=images=images \
+            --include-data-dir=audios=audios \
+            --include-data-dir=fonts=fonts \
+            --include-data-dir=data=data \
+            --output-dir=dist \
+            --output-filename=Undertale-AfterLife \
+            main.py
+
+      - name: Verify & Package
+        shell: bash
+        run: |
+          DIST_DIR=$(ls -d dist/*.dist/ 2>/dev/null | head -1)
+          if [ -z "$DIST_DIR" ]; then
+            echo "ERROR: .dist directory not found"
+            ls -la dist/
+            exit 1
+          fi
+
+          echo "Dist directory: $DIST_DIR"
+          ls -lh "$DIST_DIR"/
+
+          ARCHIVE="Undertale-AfterLife-${{ matrix.target }}.zip"
+          (cd "$DIST_DIR" && zip -r "../$ARCHIVE" .)
+          echo "Created: dist/$ARCHIVE"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Undertale-AfterLife-${{ matrix.target }}
+          path: dist/Undertale-AfterLife-${{ matrix.target }}.zip
