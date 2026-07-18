@@ -1,21 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -eu
 
 # Undertale: AfterLife — Nuitka 构建脚本
-# 用法: ./build.sh                    # 自动检测当前平台编译
-#       ./build.sh windows             # GitHub Actions: windows-latest
-#       ./build.sh linux               # GitHub Actions: ubuntu-latest
-#       ./build.sh macos               # GitHub Actions: macos-latest
 
 PLATFORM="${1:-$(uname -s | tr '[:upper:]' '[:lower:]')}"
-
 case "$PLATFORM" in
-    linux|windows|macos|darwin)
-        ;;
-    *)
-        echo "Unsupported platform: $PLATFORM (use: linux, windows, macos)"
-        exit 1
-        ;;
+    linux|windows|macos|darwin) ;;
+    *) echo "Unsupported platform: $PLATFORM (use: linux, windows, macos)"; exit 1 ;;
 esac
 
 echo "=== Undertale: AfterLife — Nuitka Build ==="
@@ -34,38 +25,34 @@ python3 -m nuitka \
     --assume-yes-for-downloads \
     main.py
 
-DIST_DIR="dist/Undertale-AfterLife.dist"
+DIST_DIR="dist/main.dist"
 
-# ── Termux: bundle libpython (Nuitka auto-detect fails on Android) ──
+# ── Termux patches ─────────────────────────────────────────────────
 if [ "$PLATFORM" = "linux" ] && [ -n "${PREFIX:-}" ]; then
-    LIBPYTHON="/data/data/com.termux/files/usr/lib/libpython3.14.so"
-    if [ -f "$LIBPYTHON" ] && [ ! -f "${DIST_DIR}/libpython3.14.so" ]; then
-        echo "[Termux] Bundling libpython..."
-        cp "$LIBPYTHON" "$DIST_DIR/"
-    fi
+    echo "[Termux] Bundling libpython..."
+    cp "${PREFIX}/lib/libpython3.14.so" "$DIST_DIR/" 2>/dev/null || true
+    echo "[Termux] Creating launch wrapper..."
+    cat > "$DIST_DIR/run.sh" << 'WRAPPER'
+#!/data/data/com.termux/files/usr/bin/bash
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+export LD_LIBRARY_PATH="/data/data/com.termux/files/usr/lib:${SCRIPT_DIR}"
+exec "${SCRIPT_DIR}/Undertale-AfterLife"
+WRAPPER
+    chmod +x "$DIST_DIR/run.sh"
+    echo "[Termux] Usage: cd dist/main.dist && ./run.sh"
 fi
 
-# ── Determine binary path ──────────────────────────────────────────
+# ── Binary path ────────────────────────────────────────────────────
 case "$PLATFORM" in
-    windows)
-        BIN="${DIST_DIR}/Undertale-AfterLife.exe"
-        ARCHIVE_NAME="Undertale-AfterLife-windows"
-        ;;
+    windows) BIN="${DIST_DIR}/Undertale-AfterLife.exe" ; ARCHIVE_NAME="Undertale-AfterLife-windows" ;;
     linux)
-        BIN="${DIST_DIR}/Undertale-AfterLife.bin"
+        BIN="${DIST_DIR}/Undertale-AfterLife"
         case "$(uname -m)" in
-            aarch64|armv8l|arm64)
-                ARCHIVE_NAME="Undertale-AfterLife-linux-arm64"
-                ;;
-            *)
-                ARCHIVE_NAME="Undertale-AfterLife-linux-x86_64"
-                ;;
+            aarch64|armv8l|arm64) ARCHIVE_NAME="Undertale-AfterLife-linux-arm64" ;;
+            *) ARCHIVE_NAME="Undertale-AfterLife-linux-x86_64" ;;
         esac
         ;;
-    macos|darwin)
-        BIN="${DIST_DIR}/Undertale-AfterLife.bin"
-        ARCHIVE_NAME="Undertale-AfterLife-macos"
-        ;;
+    macos|darwin) BIN="${DIST_DIR}/Undertale-AfterLife" ; ARCHIVE_NAME="Undertale-AfterLife-macos" ;;
 esac
 
 # ── Verify ─────────────────────────────────────────────────────────
@@ -76,10 +63,8 @@ if [ -f "$BIN" ]; then
     echo "Binary:  $BIN"
     echo "Dist:    $DIST_DIR"
 else
-    echo ""
-    echo "=== WARNING: binary not found ==="
-    echo "Expected: $BIN"
-    find dist/ -type f -perm -111 2>/dev/null || find dist/ -type f 2>/dev/null | head -20
+    echo "=== FAIL: binary not found at $BIN ==="
+    find dist/ -type f -executable 2>/dev/null || find dist/ -type f 2>/dev/null | head -20
     exit 1
 fi
 
