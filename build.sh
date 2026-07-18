@@ -23,11 +23,6 @@ echo "Platform: $PLATFORM"
 echo "Arch:     $(uname -m)"
 
 # ── Build ──────────────────────────────────────────────────────────
-NUITKA_EXTRA=""
-if [ "$PLATFORM" = "windows" ]; then
-    NUITKA_EXTRA="--windows-dependency-tool=dumpbin"
-fi
-
 python3 -m nuitka \
     --standalone \
     --include-data-dir=images=images \
@@ -36,7 +31,7 @@ python3 -m nuitka \
     --include-data-dir=data=data \
     --output-dir=dist \
     --output-filename=Undertale-AfterLife \
-    $NUITKA_EXTRA \
+    --assume-yes-for-downloads \
     main.py
 
 DIST_DIR="dist/Undertale-AfterLife.dist"
