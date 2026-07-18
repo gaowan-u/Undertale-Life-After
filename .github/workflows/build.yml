@@ -51,7 +51,17 @@ jobs:
             --assume-yes-for-downloads \
             main.py
 
-      - name: Verify & Package
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $dist = Get-ChildItem dist -Directory -Filter "*.dist" | Select-Object -First 1
+          Write-Host "Packaging $($dist.FullName)..."
+          Compress-Archive -Path "$($dist.FullName)\*" -DestinationPath "dist\Undertale-AfterLife-windows.zip"
+          Write-Host "Created: dist/Undertale-AfterLife-windows.zip"
+
+      - name: Package (Linux/macOS)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           DIST_DIR=$(ls -d dist/*.dist/ 2>/dev/null | head -1)
@@ -60,10 +70,8 @@ jobs:
             ls -la dist/
             exit 1
           fi
-
           echo "Dist directory: $DIST_DIR"
           ls -lh "$DIST_DIR"/
-
           ARCHIVE="Undertale-AfterLife-${{ matrix.target }}.zip"
           (cd "$DIST_DIR" && zip -r "../$ARCHIVE" .)
           echo "Created: dist/$ARCHIVE"
