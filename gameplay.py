@@ -587,7 +587,8 @@ class GameplaySession:
                 self.pause_selected = 0
 
         if self.paused:
-            return self._process_pause(events)
+            filtered_events = [e for e in events if not (e.type == pygame.KEYDOWN and e.key in (pygame.K_ESCAPE, pygame.K_AC_BACK))]
+            return self._process_pause(filtered_events)
 
         self.buttons.reset_states()
 
