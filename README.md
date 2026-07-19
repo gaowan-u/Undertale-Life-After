@@ -18,6 +18,10 @@ Undertale: Survival After Disaster
 
 项目更新
 
+- <span style="color:#2ea043">🟢 feat：游戏内暂停菜单与实时存档——ESC/安卓返回键呼出暂停菜单（继续游戏/保存游戏/保存并返回主菜单），新增玩家属性（等级/血量/攻防/金币/物品/装备）随存档持久化，游玩时长精确累计并校验合法性（2026-07-19）</span>
+- <span style="color:#2ea043">🟢 feat：全面键盘导航——主菜单/设置/存档菜单支持方向键、WASD、Enter/Space 选择，存档菜单支持 Delete 键删除存档，确认弹窗支持左右/Tab 切换（2026-07-19）</span>
+- <span style="color:#2ea043">🟢 feat：删除存档确认弹窗——删除操作需二次确认，防止误删存档（2026-07-19）</span>
+- <span style="color:#2ea043">🟡 fix：修复启动画面 2 秒阻塞期间无法响应退出事件、虚拟摇杆误读触屏事件 button 属性、动作按钮鼠标长按串扰及键盘 Z/X/C 长按失效等问题；动作按钮新增 FINGERMOTION 滑动切换支持（2026-07-19）</span>
 - <span style="color:#2ea043">🔵 perf：代码优化——save_menu 预计算 delete_rects 消除 draw/handle_event 中重复 Rect 构造，gameplay handle_back_event 使用直接 rect 碰撞检测替代 _hit_test 全区域扫描（2026-07-16）</span>
 - <span style="color:#2ea043">🟡 fix：修复 gameplay.py handle_back_event 方法缩进错误，导致 SyntaxError 文件无法编译（2026-07-16）</span>
 - <span style="color:#2ea043">🟡 fix：触控UI防误关——返回按钮永久可见可点（即使关闭触控UI也不会卡死在游戏里），关闭触控UI需确认弹窗（2026-07-14）</span>
@@ -207,9 +211,10 @@ python main.py
 
 4. **存档系统 (save_system.py / save_menu.py)**
    - 多存档位管理（3个槽位）
-   - 创建/加载/删除存档
+   - 创建/加载/删除存档（删除需二次确认）
    - 角色名称自定义输入
-   - JSON 格式存档数据
+   - JSON 格式存档数据（含玩家属性与游玩时长）
+   - 键盘导航（方向键选择 / Enter 确认 / Delete 删除）
 
 5. **设置菜单 (setting.py)**
    - 音量、画质、控制设置选项框架
@@ -218,7 +223,9 @@ python main.py
 6. **游戏玩法 (gameplay.py)**
    - 角色移动系统（键盘 WASD/方向键 + 触摸摇杆）
    - 角色动画系统（四方向站立/行走动画）
-   - 动作按钮（Z/X/C 键盘 + 触摸）
+   - 动作按钮（Z/X/C 键盘 + 触摸，支持滑动切换）
+   - 暂停菜单（ESC/返回键呼出，可保存游戏或返回主菜单）
+   - 玩家属性系统（等级/血量/攻防/金币/物品/装备）
    - 资源安全加载机制
 
 ### 项目更新说明
