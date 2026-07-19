@@ -96,7 +96,13 @@ def play(screen):
     try:
         screen.blit(first_image, (0, 0))
         pygame.display.flip()
-        time.sleep(2)
+        splash_start = time.time()
+        while time.time() - splash_start < 2.0:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.event.post(pygame.event.Event(pygame.QUIT))
+                    return False
+            clock.tick(60)
 
         if audio_available and audio:
             audio.play()
@@ -108,7 +114,7 @@ def play(screen):
                 if event.type == pygame.QUIT:
                     running = False
                     pygame.event.post(pygame.event.Event(pygame.QUIT))
-                    return True
+                    break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         running = False

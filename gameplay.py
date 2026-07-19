@@ -2,9 +2,11 @@ from typing import Dict, List, Optional, Tuple
 import pygame
 import math
 import os
+import time
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT, IMAGE_FOLDER
 from screen_adapter import get_logical_mouse_pos, to_logical
 from map_boundary import is_point_inside
+from save_system import save_system
 
 # ==========================================
 # 1. 资源安全加载器
@@ -112,6 +114,15 @@ class Player:
         self.speed = PLAYER_SPEED
         self.direction: str = 'down'
 
+        self.level: int = 1
+        self.health: int = 20
+        self.max_health: int = 20
+        self.attack: int = 10
+        self.defense: int = 10
+        self.gold: int = 0
+        self.items: list = []
+        self.equipment: dict = {}
+
         self.animation_timer: int = 0
         self.animation_index: int = 0
         self.frame_duration: int = FRAME_DURATION
@@ -182,7 +193,7 @@ class VirtualJoystick:
                 return
 
             if event.type in (pygame.MOUSEBUTTONDOWN, pygame.FINGERDOWN):
-                if event.type == pygame.FINGERDOWN or event.button == 1:
+                if event.type == pygame.FINGERDOWN or (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1):
                     if self.base_rect.collidepoint(logical_pos) or self.top_rect.collidepoint(logical_pos):
                         self.dragging = True
                         self._touch_finger_id = finger_id
@@ -254,12 +265,15 @@ class ActionButtons:
     def update_hold(self, keys) -> None:
         """每帧事件处理后调用：维持长按状态"""
         mouse_held = pygame.mouse.get_pressed()[0]
+        key_map = {1: pygame.K_z, 2: pygame.K_x, 3: pygame.K_c}
 
         for btn_id in (1, 2, 3):
             if self.pressed.get(btn_id, False):
                 if btn_id in self._touch_finger_ids:
                     self.states[btn_id] = 1
-                elif mouse_held:
+                elif mouse_held and self._mouse_pressed_btn == btn_id:
+                    self.states[btn_id] = 1
+                elif keys[key_map[btn_id]]:
                     self.states[btn_id] = 1
                 else:
                     self.pressed[btn_id] = False
@@ -298,6 +312,28 @@ class ActionButtons:
                         self.states[btn], self.pressed[btn] = 1, True
                     else:
                         self.pressed[btn] = True
+
+            elif event.type == pygame.FINGERMOTION:
+                logical_pos = _touch_to_logical(event)
+                btn = self._hit_test(logical_pos)
+                current_btn = None
+                for b, fid in self._touch_finger_ids.items():
+                    if fid == event.finger_id:
+                        current_btn = b
+                        break
+                if btn != current_btn:
+                    if current_btn is not None:
+                        if isinstance(current_btn, int):
+                            self.states[current_btn], self.pressed[current_btn] = 0, False
+                        else:
+                            self.pressed[current_btn] = False
+                        del self._touch_finger_ids[current_btn]
+                    if btn is not None:
+                        self._touch_finger_ids[btn] = event.finger_id
+                        if isinstance(btn, int):
+                            self.states[btn], self.pressed[btn] = 1, True
+                        else:
+                            self.pressed[btn] = True
 
             elif event.type == pygame.FINGERUP:
                 for btn, fid in list(self._touch_finger_ids.items()):
@@ -396,6 +432,13 @@ class GameplaySession:
         self.keyboard_dir: Tuple[float, float] = (0.0, 0.0)
         self._exit_triggered: bool = False
 
+        self.game_time_start: float = time.time()
+        self.accumulated_play_time: float = 0.0
+
+        self.paused: bool = False
+        self.pause_selected: int = 0
+        self._init_pause_menu()
+
     def _update_keyboard_input(self, keys) -> None:
         dx, dy = 0.0, 0.0
         if keys[pygame.K_LEFT] or keys[pygame.K_a]: dx -= 1
@@ -419,7 +462,133 @@ class GameplaySession:
         self.player.rect.y = pos.get("y", PLAYER_INITIAL_Y)
         self.player.direction = pos.get("direction", "down")
 
+        player_data = save_data.get("player", {})
+        self.player.level = player_data.get("level", 1)
+        self.player.health = player_data.get("health", 20)
+        self.player.max_health = player_data.get("max_health", 20)
+        self.player.attack = player_data.get("attack", 10)
+        self.player.defense = player_data.get("defense", 10)
+        self.player.gold = player_data.get("gold", 0)
+        self.player.items = player_data.get("items", [])
+        self.player.equipment = player_data.get("equipment", {})
+
+    def _get_play_time(self) -> float:
+        return self.accumulated_play_time + (time.time() - self.game_time_start)
+
+    def _build_save_data(self) -> dict:
+        p = self.player
+        return {
+            "play_time": self._get_play_time(),
+            "player_position": {
+                "x": p.rect.x,
+                "y": p.rect.y,
+                "direction": p.direction,
+            },
+            "player_stats": {
+                "level": p.level,
+                "health": p.health,
+                "max_health": p.max_health,
+                "attack": p.attack,
+                "defense": p.defense,
+                "gold": p.gold,
+                "items": p.items,
+                "equipment": p.equipment,
+            },
+        }
+
+    def _init_pause_menu(self) -> None:
+        res = Resources()
+        self._pause_items = ["继续游戏", "保存游戏", "保存并返回主菜单"]
+        self._pause_surfaces = []
+        self._pause_sel_surfaces = []
+        self._pause_rects = []
+        for i, item in enumerate(self._pause_items):
+            surf = res.font_32.render(item, True, res.COLOR_WHITE)
+            sel_surf = res.font_32.render(item, True, res.COLOR_YELLOW)
+            rect = surf.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + i * 60))
+            self._pause_surfaces.append(surf)
+            self._pause_sel_surfaces.append(sel_surf)
+            self._pause_rects.append(rect)
+        self._pause_overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        self._pause_overlay.fill((0, 0, 0, 160))
+        self._pause_title = res.title_font_medium.render("暂停", True, res.COLOR_WHITE)
+        self._pause_title_rect = self._pause_title.get_rect(
+            center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 100))
+        self._pause_heart = res.create_heart_surface(24, res.COLOR_RED)
+
+    def _process_pause(self, events: List[pygame.event.Event]) -> Tuple[pygame.Surface, Optional[str]]:
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.paused = False
+                    break
+                elif event.key in (pygame.K_UP, pygame.K_w):
+                    self.pause_selected = (self.pause_selected - 1) % len(self._pause_items)
+                elif event.key in (pygame.K_DOWN, pygame.K_s):
+                    self.pause_selected = (self.pause_selected + 1) % len(self._pause_items)
+                elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                    if self.pause_selected == 0:
+                        self.paused = False
+                    elif self.pause_selected == 1:
+                        self._do_save()
+                    elif self.pause_selected == 2:
+                        self._do_save()
+                        self.paused = False
+                        self.game_time_start = time.time()
+                        return self.surface, "back"
+            elif event.type == pygame.MOUSEMOTION:
+                pos = get_logical_mouse_pos()
+                self.pause_selected = -1
+                for i, rect in enumerate(self._pause_rects):
+                    if rect.collidepoint(pos):
+                        self.pause_selected = i
+                        break
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if self.pause_selected == 0:
+                    self.paused = False
+                elif self.pause_selected == 1:
+                    self._do_save()
+                elif self.pause_selected == 2:
+                    self._do_save()
+                    self.paused = False
+                    self.game_time_start = time.time()
+                    return self.surface, "back"
+
+        self.surface.fill((0, 0, 0))
+        self.surface.blit(self._pause_overlay, (0, 0))
+        self.surface.blit(self._pause_title, self._pause_title_rect)
+        for i in range(len(self._pause_items)):
+            surf = self._pause_sel_surfaces[i] if i == self.pause_selected else self._pause_surfaces[i]
+            self.surface.blit(surf, self._pause_rects[i])
+            if i == self.pause_selected:
+                heart_x = self._pause_rects[i].left - 45 + Resources.breathing_offset()
+                heart_y = self._pause_rects[i].centery - self._pause_heart.get_height() / 2
+                self.surface.blit(self._pause_heart, (heart_x, heart_y))
+        return self.surface, None
+
+    def _do_save(self) -> bool:
+        if save_system.current_save_slot is None:
+            print("[保存] 没有活动存档位，无法保存")
+            return False
+        game_state = self._build_save_data()
+        ok = save_system.save_game(game_state)
+        if ok:
+            self.accumulated_play_time = self._get_play_time()
+            self.game_time_start = time.time()
+            print(f"[保存] 存档 {save_system.current_save_slot} 保存成功")
+        else:
+            print("[保存] 保存失败")
+        return ok
+
     def process(self, events: List[pygame.event.Event]) -> Tuple[pygame.Surface, Optional[str]]:
+        for event in events:
+            if event.type == pygame.KEYDOWN and event.key in (pygame.K_ESCAPE, pygame.K_AC_BACK):
+                self.paused = not self.paused
+                self.pause_selected = 0
+
+        if self.paused:
+            return self._process_pause(events)
+
         self.buttons.reset_states()
 
         for event in events:
@@ -477,6 +646,9 @@ def gameplay(events: List[pygame.event.Event]) -> Tuple[pygame.Surface, Optional
 
 
 def init_session_from_save(save_data: dict) -> None:
+    global _session
+    if _session is None:
+        _session = GameplaySession()
     _session.load_from_save(save_data)
 
 

@@ -73,6 +73,21 @@ class Setting(MainMenu):
 
     def handle_event(self, event):
         if self._show_confirm:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self._show_confirm = False
+                    self._confirm_selected = None
+                elif event.key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d, pygame.K_TAB):
+                    self._confirm_selected = "no" if self._confirm_selected == "yes" else "yes"
+                elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                    if self._confirm_selected == "yes":
+                        self._show_confirm = False
+                        self._confirm_selected = None
+                        return "toggle_touch_ui"
+                    elif self._confirm_selected == "no":
+                        self._show_confirm = False
+                        self._confirm_selected = None
+                return None
             if event.type == pygame.MOUSEMOTION:
                 mouse_pos = get_logical_mouse_pos()
                 if self._confirm_yes_rect.collidepoint(mouse_pos):
@@ -89,9 +104,21 @@ class Setting(MainMenu):
                 elif self._confirm_selected == "no":
                     self._show_confirm = False
                     self._confirm_selected = None
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                self._show_confirm = False
-                self._confirm_selected = None
+            return None
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                return "back"
+            result = self._navigate_keyboard(event)
+            if result is not None:
+                if self.selected_index == 2:
+                    if get_touch_ui_visible():
+                        self._show_confirm = True
+                        self._confirm_selected = "no"
+                        return None
+                    else:
+                        return "toggle_touch_ui"
+                return result
             return None
 
         if event.type == pygame.MOUSEMOTION:
@@ -111,15 +138,12 @@ class Setting(MainMenu):
                 elif self.selected_index == 2:
                     if get_touch_ui_visible():
                         self._show_confirm = True
+                        self._confirm_selected = "no"
                         return None
                     else:
                         return "toggle_touch_ui"
                 elif self.selected_index == 3:
                     return "back"
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                return "back"
 
         return None
 

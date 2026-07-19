@@ -18,6 +18,9 @@ class SaveSystem:
     
     def get_save_file_path(self, slot_id: int) -> str:
         return os.path.join(self.save_dir, f"save_{slot_id}.json")
+
+    def save_exists(self, slot_id: int) -> bool:
+        return self._read_save_file(slot_id) is not None
     
     def create_default_save_data(self) -> Dict[str, Any]:
         return {
@@ -110,7 +113,9 @@ class SaveSystem:
                 return False
 
             save_data["metadata"]["last_played"] = self.get_current_timestamp()
-            save_data["metadata"]["play_time"] += game_state.get("play_time", 0)
+            delta = game_state.get("play_time", 0)
+            if isinstance(delta, (int, float)) and 0 < delta < 86400:
+                save_data["metadata"]["play_time"] += delta
 
             if "player_position" in game_state:
                 save_data["position"] = game_state["player_position"]

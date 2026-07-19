@@ -183,15 +183,16 @@ def main() -> NoReturn:
                     elif action in ("volume", "quality"):
                         pass
                 elif game_state == 'gameplay':
-                    if event.type == pygame.KEYDOWN and event.key in (pygame.K_ESCAPE, pygame.K_AC_BACK):
-                        game_state = 'main_menu'
-                        background_music_playing = False
+                    pass
 
             # --- 状态逻辑更新 ---
             if game_state == 'intro':
-                if play_intro(screen):
+                intro_result = play_intro(screen)
+                if intro_result:
                     game_state = 'disclaimer'
                     disclaimer_start_time = pygame.time.get_ticks()
+                else:
+                    running = False
             elif game_state == 'gameplay':
                 try:
                     gameplay_surface, return_status = gameplay(events)
