@@ -15,7 +15,7 @@ Time moved forward to the year 202X. Rumors about Mount Ebott never ceased. Some
 ……
 
 A human child climbed onto this desolate land，
- but accidentally slipped and fell here. 
+ but accidentally slipped and fell here.
  Darkness engulfed them, yet your soul shone brilliantly.
 The story
 begins here.

@@ -40,26 +40,36 @@ class Resources:
 
     def _init_fonts(self):
         """初始化字体"""
-        font_path = os.path.join(FONT_FOLDER, "NotoSansSC-Bold.ttf")
-        regular_font_path = os.path.join(FONT_FOLDER, "NotoSansSC-Regular.ttf")
+        zpix_path = os.path.join(FONT_FOLDER, "zpix.ttf")
+        dtm_path = os.path.join(FONT_FOLDER, "DTM-Mono.otf")
+        bit8_path = os.path.join(FONT_FOLDER, "8bitoperator_jve.ttf")
+        determination_path = os.path.join(FONT_FOLDER, "greater-determination-sans.ttf")
 
-        try:
-            self.title_font = pygame.font.Font(font_path, 72)
-            self.title_font_medium = pygame.font.Font(font_path, 48)
-        except (FileNotFoundError, pygame.error):
-            print("警告: 无法加载粗体字体，使用系统默认")
-            self.title_font = pygame.font.Font(None, 72)
-            self.title_font_medium = pygame.font.Font(None, 48)
+        def _load_font(path, size, fallback_name=None):
+            try:
+                return pygame.font.Font(path, size)
+            except (FileNotFoundError, pygame.error) as e:
+                print(f"警告: 无法加载字体 {os.path.basename(path)} ({e})，使用系统默认")
+                return pygame.font.Font(None, size)
 
-        try:
-            self.font_32 = pygame.font.Font(regular_font_path, 32)
-            self.font_36 = pygame.font.Font(regular_font_path, 36)
-            self.font_24 = pygame.font.Font(regular_font_path, 24)
-        except (FileNotFoundError, pygame.error):
-            print("警告: 无法加载常规字体，使用系统默认")
-            self.font_32 = pygame.font.Font(None, 32)
-            self.font_36 = pygame.font.Font(None, 36)
-            self.font_24 = pygame.font.Font(None, 24)
+        # 中文像素字体 (Zpix) — 标题 / 菜单 / 通用
+        self.title_font = _load_font(zpix_path, 72)
+        self.title_font_medium = _load_font(zpix_path, 48)
+        self.font_32 = _load_font(zpix_path, 32)
+        self.font_36 = _load_font(zpix_path, 36)
+        self.font_24 = _load_font(zpix_path, 24)
+
+        # Undertale 风格英文字体 (DTM-Mono) — 对话 / 叙述
+        self.dialog_font = _load_font(dtm_path, 48)
+        self.dialog_font_small = _load_font(dtm_path, 36)
+
+        # 8bit Operator — 战斗数字 (伤害 / HP)
+        self.battle_number_font = _load_font(bit8_path, 48)
+        self.battle_number_font_small = _load_font(bit8_path, 36)
+
+        # Determination Sans — 备选 UI 字体
+        self.ui_font = _load_font(determination_path, 48)
+        self.ui_font_small = _load_font(determination_path, 36)
 
     def _init_colors(self):
         """初始化颜色常量"""
