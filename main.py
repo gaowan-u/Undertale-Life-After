@@ -78,6 +78,7 @@ def main() -> NoReturn:
 
     # --- 游戏主循环 ---
     running = True
+    frame_count = 0
     try:
         while running:
             # --- 事件处理 ---
@@ -98,6 +99,12 @@ def main() -> NoReturn:
             manager.draw()
             render_to_screen(screen)
             pygame.display.flip()
+
+            # 标题栏实时 FPS（每半秒刷新一次，开销忽略不计）
+            frame_count += 1
+            if frame_count % 30 == 0:
+                pygame.display.set_caption(f"传说之下-劫后余生 | {clock.get_fps():.0f} FPS")
+
             clock.tick(60)  # 60帧
 
     except KeyboardInterrupt:
