@@ -1,18 +1,25 @@
 from typing import NoReturn
-import pygame
-import sys
 import os
+import sys
 import subprocess
 import warnings
+
+# 屏蔽两类启动噪音（必须先于 import pygame）：
+# 1. pkg_resources 弃用警告——由 pygame.pkgdata 在导入时触发，过滤器需提前装好
+warnings.filterwarnings("ignore", category=UserWarning, module='pygame.pkgdata')
+# 2. Vulkan 加载器探测厂商驱动的 linker 警告——限定 ICD 扫描范围仅软件渲染器
+#    （游戏走 SDL software/x11 渲染路径，不使用 Vulkan；setdefault 只影响本进程）
+_LVP_ICD = os.path.join(os.environ.get('PREFIX', ''), 'share/vulkan/icd.d/lvp_icd.aarch64.json')
+if os.path.exists(_LVP_ICD):
+    os.environ.setdefault('VK_DRIVER_FILES', _LVP_ICD)
+    os.environ.setdefault('VK_ICD_FILENAMES', _LVP_ICD)
+
+import pygame
 
 from resources import SCREEN_WIDTH, SCREEN_HEIGHT
 from screen_adapter import render_to_screen, recreate as recreate_adapter, update as update_adapter
 from scene_manager import SceneManager
 from scenes.scenes_map import IntroScene
-
-# 忽略Pygame的社区警告
-warnings.filterwarnings("ignore", category=UserWarning,
-                        module='pygame.pkgdata')
 
 
 def _check_pulse_running() -> bool:
@@ -78,7 +85,6 @@ def main() -> NoReturn:
 
     # --- 游戏主循环 ---
     running = True
-    frame_count = 0
     try:
         while running:
             # --- 事件处理 ---
@@ -99,12 +105,6 @@ def main() -> NoReturn:
             manager.draw()
             render_to_screen(screen)
             pygame.display.flip()
-
-            # 标题栏实时 FPS（每半秒刷新一次，开销忽略不计）
-            frame_count += 1
-            if frame_count % 30 == 0:
-                pygame.display.set_caption(f"传说之下-劫后余生 | {clock.get_fps():.0f} FPS")
-
             clock.tick(60)  # 60帧
 
     except KeyboardInterrupt:
