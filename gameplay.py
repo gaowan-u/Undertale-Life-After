@@ -1,10 +1,13 @@
+"""玩法组件库：玩家、虚拟摇杆、动作按钮、场景资产加载。
+
+场景的组装与驱动由 scenes/scenes_map.py 的 MapScene 负责，
+本模块只提供可复用的组件，不再持有全局会话状态。
+"""
 from typing import Dict, List, Optional, Tuple
 import pygame
 import math
 import os
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT, IMAGE_FOLDER
-from screen_adapter import get_logical_mouse_pos, to_logical
-from map_boundary import is_point_inside
 
 # ==========================================
 # 1. 资源安全加载器
@@ -24,16 +27,24 @@ def safe_load_image(path: str, fallback_color: Tuple[int, int, int] = (100, 100,
     surface.fill(fallback_color)
     return surface
 
+
+def flatten_opaque(surface: pygame.Surface) -> pygame.Surface:
+    """背景图合成到黑底转为不透明，blit 走 memcpy 快路径（比带 alpha 混合快约 3.7 倍）。
+    场景背景本身全覆盖且不透明，视觉效果不变。"""
+    opaque = pygame.Surface(surface.get_size()).convert()
+    opaque.fill((0, 0, 0))
+    opaque.blit(surface, (0, 0))
+    return opaque
+
+
 IMG_DIR = IMAGE_FOLDER
 
 # ==========================================
-# 2. 常量
+# 2. 常量（与场景无关的组件布局）
 # ==========================================
 PLAYER_WIDTH = 40
 PLAYER_HEIGHT = 60
 PLAYER_SPEED = 25
-PLAYER_INITIAL_X = 862
-PLAYER_INITIAL_Y = 561
 FRAME_DURATION = 80
 
 JOYSTICK_X = 128
@@ -52,23 +63,14 @@ BACK_BTN_TOP = 50
 BACK_BTN_WIDTH = 120
 BACK_BTN_HEIGHT = 50
 
-EXIT_ZONE_X = 1900
-EXIT_ZONE_TOP = 676
-EXIT_ZONE_BOTTOM = 839
+# 组件级资产：所有场景共用（背景图由 MapScene 按场景数据单独加载）
+_COMPONENT_ASSETS: Dict[str, pygame.Surface] = {}
 
 
-def _flatten_opaque(surface: pygame.Surface) -> pygame.Surface:
-    """背景图合成到黑底转为不透明，blit 走 memcpy 快路径（比带 alpha 混合快约 3.7 倍）。
-    场景背景本身全覆盖且不透明，视觉效果不变。"""
-    opaque = pygame.Surface(surface.get_size()).convert()
-    opaque.fill((0, 0, 0))
-    opaque.blit(surface, (0, 0))
-    return opaque
-
-
-def _build_assets() -> Dict[str, pygame.Surface]:
-    return {
-        'background': _flatten_opaque(safe_load_image(os.path.join(IMG_DIR, "spawn.png"), (50, 50, 50), (SCREEN_WIDTH, SCREEN_HEIGHT))),
+def init_assets() -> None:
+    """初始化组件资产。需在 pygame.display.set_mode() 之后调用。"""
+    global _COMPONENT_ASSETS
+    _COMPONENT_ASSETS = {
         'joystick_base': safe_load_image(os.path.join(IMG_DIR, "cropped_joystick_base.png"), (80, 80, 80), (150, 150)),
         'joystick_top': safe_load_image(os.path.join(IMG_DIR, "cropped_joystick_top.png"), (150, 150, 150), (80, 80)),
         'btn_1': safe_load_image(os.path.join(IMG_DIR, "cropped_button_1.png"), (200, 50, 50), (80, 80)),
@@ -89,13 +91,23 @@ def _build_assets() -> Dict[str, pygame.Surface]:
         'walk_right': safe_load_image(os.path.join(IMG_DIR, "frisk_walk_right.png"), (200, 200, 50), (40, 60)),
     }
 
-ASSETS: Dict[str, pygame.Surface] = {}
+
+def get_assets() -> Dict[str, pygame.Surface]:
+    return _COMPONENT_ASSETS
 
 
-def init_assets() -> None:
-    global ASSETS, _session
-    ASSETS = _build_assets()
-    _session = GameplaySession()
+# 背景图缓存：按图片名去重，懒加载（多个场景可能共用一张背景）
+_background_cache: Dict[str, pygame.Surface] = {}
+
+
+def load_background(image_name: str) -> pygame.Surface:
+    """按图片文件名加载场景背景（不透明快路径），带缓存。"""
+    if image_name in _background_cache:
+        return _background_cache[image_name]
+    surface = safe_load_image(os.path.join(IMG_DIR, image_name), (50, 50, 50), (SCREEN_WIDTH, SCREEN_HEIGHT))
+    surface = flatten_opaque(surface)
+    _background_cache[image_name] = surface
+    return surface
 
 
 # ==========================================
@@ -103,6 +115,7 @@ def init_assets() -> None:
 # ==========================================
 def _touch_to_logical(event: pygame.event.Event) -> tuple[float, float]:
     """将触屏事件归一化坐标 (0-1) 转为逻辑坐标"""
+    from screen_adapter import to_logical
     screen = pygame.display.get_surface()
     if screen is None:
         return (0, 0)
@@ -112,14 +125,14 @@ def _touch_to_logical(event: pygame.event.Event) -> tuple[float, float]:
 
 
 # ==========================================
-# 4. 核心类
+# 4. 核心组件
 # ==========================================
 class Player:
-    def __init__(self) -> None:
+    def __init__(self, x: int, y: int, direction: str = 'down') -> None:
         self.width, self.height = PLAYER_WIDTH, PLAYER_HEIGHT
-        self.rect = pygame.Rect(PLAYER_INITIAL_X, PLAYER_INITIAL_Y, self.width, self.height)
+        self.rect = pygame.Rect(x, y, self.width, self.height)
         self.speed = PLAYER_SPEED
-        self.direction: str = 'down'
+        self.direction: str = direction
 
         self.animation_timer: int = 0
         self.animation_index: int = 0
@@ -132,7 +145,7 @@ class Player:
             'right': ['stand_right', 'walk_right', 'stand_right', 'walk_right']
         }
 
-    def update(self, dx: float, dy: float, current_time: int) -> None:
+    def update(self, dx: float, dy: float, current_time: int, boundary) -> None:
         is_moving = abs(dx) > 0.1 or abs(dy) > 0.1
 
         if is_moving:
@@ -141,6 +154,7 @@ class Player:
             else:
                 self.direction = 'down' if dy > 0 else 'up'
 
+            from map_boundary import is_point_inside
             cx = self.rect.centerx
             cy = self.rect.centery
             new_x = self.rect.x + dx * self.speed
@@ -148,9 +162,9 @@ class Player:
             new_cx = new_x + self.width // 2
             new_cy = new_y + self.height // 2
 
-            if is_point_inside(new_cx, cy):
+            if is_point_inside(new_cx, cy, boundary):
                 self.rect.x = new_x
-            if is_point_inside(cx, new_cy):
+            if is_point_inside(cx, new_cy, boundary):
                 self.rect.y = new_y
 
             if current_time - self.animation_timer > self.frame_duration:
@@ -162,7 +176,7 @@ class Player:
     def draw(self, surface: pygame.Surface) -> None:
         seq = self.sequences[self.direction]
         img_key = seq[self.animation_index]
-        img = ASSETS.get(img_key)
+        img = _COMPONENT_ASSETS.get(img_key)
         if img:
             visual_rect = img.get_rect(midbottom=self.rect.midbottom)
             surface.blit(img, visual_rect)
@@ -170,8 +184,8 @@ class Player:
 
 class VirtualJoystick:
     def __init__(self) -> None:
-        base_img = ASSETS['joystick_base']
-        top_img = ASSETS['joystick_top']
+        base_img = _COMPONENT_ASSETS['joystick_base']
+        top_img = _COMPONENT_ASSETS['joystick_top']
         self.base_rect = base_img.get_rect(topleft=(JOYSTICK_X, SCREEN_HEIGHT - JOYSTICK_Y_FROM_BOTTOM))
         self.top_rect = top_img.get_rect(center=self.base_rect.center)
         self.radius = self.base_rect.width / 2 * JOYSTICK_RADIUS_RATIO
@@ -185,6 +199,7 @@ class VirtualJoystick:
                 logical_pos = _touch_to_logical(event)
                 finger_id = event.finger_id
             elif hasattr(event, 'pos'):
+                from screen_adapter import to_logical
                 logical_pos = to_logical(event.pos)
                 finger_id = None
             else:
@@ -232,15 +247,15 @@ class VirtualJoystick:
         self.direction = (0.0, 0.0)
 
     def draw(self, surface: pygame.Surface) -> None:
-        surface.blit(ASSETS['joystick_base'], self.base_rect)
-        surface.blit(ASSETS['joystick_top'], self.top_rect)
+        surface.blit(_COMPONENT_ASSETS['joystick_base'], self.base_rect)
+        surface.blit(_COMPONENT_ASSETS['joystick_top'], self.top_rect)
 
 
 class ActionButtons:
     def __init__(self) -> None:
-        btn1 = ASSETS['btn_1']
-        btn2 = ASSETS['btn_2']
-        btn3 = ASSETS['btn_3']
+        btn1 = _COMPONENT_ASSETS['btn_1']
+        btn2 = _COMPONENT_ASSETS['btn_2']
+        btn3 = _COMPONENT_ASSETS['btn_3']
 
         self.btn1_rect = btn1.get_rect(topleft=(BTN1_X, SCREEN_HEIGHT - BTN_Y_FROM_BOTTOM))
         self.btn2_rect = btn2.get_rect(topleft=(BTN2_X, SCREEN_HEIGHT - BTN2_Y_FROM_BOTTOM))
@@ -297,6 +312,7 @@ class ActionButtons:
         return None
 
     def handle_event(self, event: pygame.event.Event) -> None:
+        from screen_adapter import to_logical
         if event.type in (pygame.FINGERDOWN, pygame.FINGERUP, pygame.FINGERMOTION):
             if event.type == pygame.FINGERDOWN:
                 logical_pos = _touch_to_logical(event)
@@ -347,6 +363,7 @@ class ActionButtons:
             elif event.key == pygame.K_c: self.states[3], self.pressed[3] = 0, False
 
     def handle_back_event(self, event: pygame.event.Event) -> None:
+        from screen_adapter import to_logical
         if event.type in (pygame.FINGERDOWN, pygame.FINGERUP):
             if event.type == pygame.FINGERDOWN:
                 logical_pos = _touch_to_logical(event)
@@ -383,112 +400,18 @@ class ActionButtons:
         self._back_hover.blit(text, (tx, ty))
 
     def _draw_back_button(self, surface: pygame.Surface) -> None:
+        from screen_adapter import get_logical_mouse_pos
         is_hover = self.back_rect.collidepoint(get_logical_mouse_pos())
         surface.blit(self._back_hover if is_hover else self._back_normal, self.back_rect)
 
     def draw(self, surface: pygame.Surface) -> None:
-        surface.blit(ASSETS['fb_btn_1'] if self.states[1] else ASSETS['btn_1'], self.btn1_rect)
-        surface.blit(ASSETS['fb_btn_2'] if self.states[2] else ASSETS['btn_2'], self.btn2_rect)
-        surface.blit(ASSETS['fb_btn_3'] if self.states[3] else ASSETS['btn_3'], self.btn3_rect)
+        surface.blit(_COMPONENT_ASSETS['fb_btn_1'] if self.states[1] else _COMPONENT_ASSETS['btn_1'], self.btn1_rect)
+        surface.blit(_COMPONENT_ASSETS['fb_btn_2'] if self.states[2] else _COMPONENT_ASSETS['btn_2'], self.btn2_rect)
+        surface.blit(_COMPONENT_ASSETS['fb_btn_3'] if self.states[3] else _COMPONENT_ASSETS['btn_3'], self.btn3_rect)
         self._draw_back_button(surface)
 
 
-# ==========================================
-# 5. 游戏会话管理器
-# ==========================================
-class GameplaySession:
-    def __init__(self) -> None:
-        self.surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT)).convert()
-        self.player = Player()
-        self.joystick = VirtualJoystick()
-        self.buttons = ActionButtons()
-        self.keyboard_dir: Tuple[float, float] = (0.0, 0.0)
-        self._exit_triggered: bool = False
-
-    def _update_keyboard_input(self, keys) -> None:
-        dx, dy = 0.0, 0.0
-        if keys[pygame.K_LEFT] or keys[pygame.K_a]: dx -= 1
-        if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
-        if keys[pygame.K_UP] or keys[pygame.K_w]: dy -= 1
-        if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
-
-        if dx == 0 and dy == 0:
-            self.keyboard_dir = (0.0, 0.0)
-            return
-
-        if dx != 0 and dy != 0:
-            length = math.hypot(dx, dy)
-            dx /= length
-            dy /= length
-        self.keyboard_dir = (dx, dy)
-
-    def load_from_save(self, save_data: dict) -> None:
-        pos = save_data.get("position", {})
-        self.player.rect.x = pos.get("x", PLAYER_INITIAL_X)
-        self.player.rect.y = pos.get("y", PLAYER_INITIAL_Y)
-        self.player.direction = pos.get("direction", "down")
-
-    def process(self, events: List[pygame.event.Event]) -> Tuple[pygame.Surface, Optional[str]]:
-        self.buttons.reset_states()
-
-        for event in events:
-            if _touch_ui_visible:
-                self.joystick.handle_event(event)
-                self.buttons.handle_event(event)
-            else:
-                self.buttons.handle_back_event(event)
-
-        if self.buttons.pressed['back']:
-            return self.surface, "back"
-
-        keys = pygame.key.get_pressed()
-        self.buttons.update_hold(keys)
-        self._update_keyboard_input(keys)
-
-        kx, ky = self.keyboard_dir
-        jx, jy = self.joystick.direction if _touch_ui_visible else (0.0, 0.0)
-
-        if abs(kx) > 0.1 or abs(ky) > 0.1:
-            dx, dy = kx, ky
-        else:
-            dx, dy = jx, jy
-
-        self.player.update(dx, dy, pygame.time.get_ticks())
-
-        at_exit = (self.player.rect.right >= EXIT_ZONE_X
-                   and EXIT_ZONE_TOP <= self.player.rect.centery <= EXIT_ZONE_BOTTOM)
-        if at_exit and dx > 0 and not self._exit_triggered:
-            self._exit_triggered = True
-            print("[出口] 玩家到达右侧出口")
-            return self.surface, "exit"
-        if not at_exit:
-            self._exit_triggered = False
-
-        self.surface.blit(ASSETS['background'], (0, 0))
-        self.player.draw(self.surface)
-        if _touch_ui_visible:
-            self.joystick.draw(self.surface)
-            self.buttons.draw(self.surface)
-        else:
-            self.buttons._draw_back_button(self.surface)
-
-        return self.surface, None
-
-
-_session: GameplaySession | None = None
-
-
-def gameplay(events: List[pygame.event.Event]) -> Tuple[pygame.Surface, Optional[str]]:
-    global _session
-    if _session is None:
-        _session = GameplaySession()
-    return _session.process(events)
-
-
-def init_session_from_save(save_data: dict) -> None:
-    _session.load_from_save(save_data)
-
-
+# 触控 UI 开关（全局设置，设置菜单控制）
 _touch_ui_visible = True
 
 def set_touch_ui_visible(visible: bool) -> None:

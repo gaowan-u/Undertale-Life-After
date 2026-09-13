@@ -78,6 +78,63 @@ for _ in range(5):
     manager.update()
     manager.draw()
 check("进入地图场景", isinstance(manager.current, MapScene))
+check("默认场景 id 正确", manager.current.scene_id == "falling_ruins")
+
+# 5a. 场景数据化验证：出生点来自 JSON
+p = manager.current.player
+check("出生点来自 JSON (862,561)", p.rect.x == 862 and p.rect.y == 561)
+
+# 5b. 走到右出口 → 触发切换到 entrance（带过渡，需真实时间流逝）
+map_scene = manager.current
+map_scene.player.rect.x = 1895  # 贴到出口区
+map_scene.player.rect.y = 720
+map_scene_events = []
+for _ in range(80):
+    pygame.time.wait(10)
+    # 模拟持续向右走的按键状态：直接注入 direction 逻辑
+    manager.handle_events(map_scene_events)
+    if isinstance(manager.current, MapScene) and manager.current is map_scene:
+        manager.current.player.update(1.0, 0.0, pygame.time.get_ticks(), manager.current._boundary)
+        manager.current._check_exits(1.0, 0.0)
+    manager.update()
+    manager.draw()
+check("出口切换到 entrance", isinstance(manager.current, MapScene) and manager.current.scene_id == "entrance")
+check("第二房间出生点为 JSON 目标 (60,728)", manager.current.player.rect.x == 60 and manager.current.player.rect.y == 728)
+
+# 5c. 第二房间再回第一房间（左出口）
+back_scene = manager.current
+back_scene.player.rect.x = 2
+back_scene.player.rect.y = 720
+for _ in range(80):
+    pygame.time.wait(10)
+    manager.handle_events([])
+    if isinstance(manager.current, MapScene) and manager.current is back_scene:
+        manager.current.player.update(-1.0, 0.0, pygame.time.get_ticks(), manager.current._boundary)
+        manager.current._check_exits(-1.0, 0.0)
+    manager.update()
+    manager.draw()
+check("返回 falling_ruins", isinstance(manager.current, MapScene) and manager.current.scene_id == "falling_ruins")
+check("返回出生点 (1820,728)", manager.current.player.rect.x == 1820 and manager.current.player.rect.y == 728)
+
+# 5d. 边界碰撞：第二房间玩家不能穿墙（上方房间外侧）
+from map_boundary import load_boundary, is_point_inside
+entrance_poly = load_boundary("entrance_boundary.json")
+check("entrance 边界已加载", len(entrance_poly) > 10)
+check("墙外点判定 False", not is_point_inside(800, 200, entrance_poly))
+check("走廊内点判定 True", is_point_inside(400, 750, entrance_poly))
+
+# 5e. 读档路径：从存档数据直接进入对应场景+位置
+save_data = {
+    "progress": {"current_scene": "entrance"},
+    "position": {"x": 100, "y": 728, "direction": "right"},
+}
+manager.reset(MapScene.from_save(manager, save_data))
+for _ in range(3):
+    manager.handle_events([])
+    manager.update()
+    manager.draw()
+check("读档进入存档场景", manager.current.scene_id == "entrance")
+check("读档位置生效", manager.current.player.rect.x == 100 and manager.current.player.rect.y == 728)
 
 # 6. 地图场景返回主菜单（模拟 gameplay 返回 "back" 不易构造，用 ESC 事件）
 manager.handle_events([pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE)])

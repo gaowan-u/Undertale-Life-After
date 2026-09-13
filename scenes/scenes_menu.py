@@ -11,6 +11,7 @@ from save_menu import SaveMenu
 from setting import Setting
 from save_system import save_system
 from resources import AUDIO_FOLDER
+import music
 
 
 MENU_MUSIC = os.path.join(AUDIO_FOLDER, "menu_music.ogg")
@@ -21,14 +22,10 @@ class MenuMusicMixin:
     场景退出时必定 stop，因此进入时直接重新加载播放即可。"""
 
     def on_enter(self) -> None:
-        try:
-            pygame.mixer.music.load(MENU_MUSIC)
-            pygame.mixer.music.play(-1)
-        except pygame.error as e:
-            print(f"警告：无法加载菜单音乐：{MENU_MUSIC} ({e})")
+        music.play(MENU_MUSIC)
 
     def on_exit(self) -> None:
-        pygame.mixer.music.stop()
+        music.stop()
 
 
 class MainMenuScene(MenuMusicMixin, Scene):

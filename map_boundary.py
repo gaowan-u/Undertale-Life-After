@@ -1,38 +1,48 @@
+"""地图边界加载与点碰撞检测。
+
+边界 JSON 由 MapBoundaryDetector 工具生成，存放于 data/ 目录。
+支持多场景：按文件名加载并缓存多边形。
+"""
 import json
 import os
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
-DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data")
-BOUNDARY_FILE = os.path.join(DATA_FOLDER, "map_boundary.json")
+from resources import DATA_FOLDER
 
-_boundary_polygon: List[Tuple[float, float]] = []
+_boundary_cache: Dict[str, List[Tuple[float, float]]] = {}
 
 
-def _load_boundary() -> List[Tuple[float, float]]:
-    if not os.path.exists(BOUNDARY_FILE):
-        print(f"警告: 地图边界文件不存在: {BOUNDARY_FILE}")
+def load_boundary(filename: str) -> List[Tuple[float, float]]:
+    """按文件名（相对 data/）加载边界多边形，带缓存。"""
+    if filename in _boundary_cache:
+        return _boundary_cache[filename]
+
+    path = os.path.join(DATA_FOLDER, filename)
+    if not os.path.exists(path):
+        print(f"警告: 地图边界文件不存在: {path}")
+        _boundary_cache[filename] = []
         return []
+
     try:
-        with open(BOUNDARY_FILE, "r") as f:
+        with open(path, "r") as f:
             data = json.load(f)
-        return [(p["x"], p["y"]) for p in data["boundary_points"]]
+        polygon = [(p["x"], p["y"]) for p in data["boundary_points"]]
     except (json.JSONDecodeError, KeyError, ValueError) as e:
-        print(f"错误: 无法解析地图边界文件: {e}")
-        return []
+        print(f"错误: 无法解析地图边界文件 {filename}: {e}")
+        polygon = []
 
-
-def get_boundary() -> List[Tuple[float, float]]:
-    global _boundary_polygon
-    if not _boundary_polygon:
-        _boundary_polygon = _load_boundary()
-    return _boundary_polygon
+    _boundary_cache[filename] = polygon
+    return polygon
 
 
 def is_point_inside(x: float, y: float, polygon: Optional[List[Tuple[float, float]]] = None) -> bool:
+    """射线法判断点是否在多边形内。polygon 为空时视为无边界（自由行走）。"""
     if polygon is None:
-        polygon = get_boundary()
+        return True
     inside = False
     n = len(polygon)
+    if n < 3:
+        return True
     j = n - 1
     for i in range(n):
         xi, yi = polygon[i]

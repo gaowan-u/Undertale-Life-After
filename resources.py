@@ -16,6 +16,8 @@ FONT_FOLDER = os.path.join(BASE_FOLDER, "fonts")
 IMAGE_FOLDER = os.path.join(BASE_FOLDER, "images")
 AUDIO_FOLDER = os.path.join(BASE_FOLDER, "audios")
 VIDEO_FOLDER = os.path.join(BASE_FOLDER, "videos")
+DATA_FOLDER = os.path.join(BASE_FOLDER, "data")
+SCENES_FOLDER = os.path.join(DATA_FOLDER, "scenes")
 
 
 class Resources:

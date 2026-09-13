@@ -1,0 +1,23 @@
+{
+  "id": "falling_ruins",
+  "background": "spawn.png",
+  "boundary": "map_boundary.json",
+  "bgm": "falling_ruins.ogg",
+  "spawn": {
+    "x": 862,
+    "y": 561,
+    "direction": "down"
+  },
+  "exits": [
+    {
+      "rect": [1900, 676, 20, 163],
+      "dir": "right",
+      "target": "entrance",
+      "target_spawn": {
+        "x": 60,
+        "y": 728,
+        "direction": "right"
+      }
+    }
+  ]
+}

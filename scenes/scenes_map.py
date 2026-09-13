@@ -2,15 +2,43 @@
 
 IntroScene：包装现有 intro_animation 播放器（保留其内部循环，特殊处理）。
 DisclaimerScene：版权声明，从 main.py 平移而来。
-MapScene：地图场景——阶段一只做薄包装，把 gameplay 模块的会话挂进框架。
+MapScene：数据驱动的地图场景——背景/边界/出生点/出口/交互全部读 data/scenes/*.json。
 
 对 scenes_menu 的引用使用方法内懒导入，避免循环依赖。
 """
+import json
 import math
+import os
 import pygame
+from typing import Dict, Optional
 
 from scene_manager import Scene, SceneManager
-from resources import Resources, SCREEN_HEIGHT
+from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT, AUDIO_FOLDER, SCENES_FOLDER
+from gameplay import Player, VirtualJoystick, ActionButtons, load_background, get_touch_ui_visible
+from map_boundary import load_boundary
+import music
+
+DEFAULT_SCENE = "falling_ruins"
+
+_scene_data_cache: Dict[str, dict] = {}
+
+
+def load_scene_data(scene_id: str) -> Optional[dict]:
+    """加载场景 JSON 定义，带缓存；文件不存在返回 None。"""
+    if scene_id in _scene_data_cache:
+        return _scene_data_cache[scene_id]
+    path = os.path.join(SCENES_FOLDER, f"{scene_id}.json")
+    if not os.path.exists(path):
+        print(f"[场景] 文件不存在: {path}")
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        _scene_data_cache[scene_id] = data
+        return data
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"[场景] 无法解析 {path}: {e}")
+        return None
 
 
 # ==========================================
@@ -31,7 +59,6 @@ class IntroScene(Scene):
         self._started = True  # play() 内部阻塞直到动画结束，确保只调用一次
         from intro_animation import play
         play(self._screen)
-        from scenes.scenes_menu import MainMenuScene
         self.manager.reset(DisclaimerScene(self.manager))
 
 
@@ -109,53 +136,151 @@ class DisclaimerScene(Scene):
 
 
 # ==========================================
-# 地图场景（阶段一：薄包装）
+# 地图场景（数据驱动）
 # ==========================================
 class MapScene(Scene):
-    """把 gameplay 模块的 GameplaySession 挂进场景框架。
+    """通用地图场景：一切行为由 data/scenes/{id}.json 描述。
 
-    gameplay() 每帧返回 (surface, status)，阶段一直接 blit 其结果；
-    阶段二会把 GameplaySession 泛化为数据驱动的通用地图并取代本包装。
+    JSON 字段：
+        background   背景图文件名（images/ 下）
+        boundary     行走边界文件名（data/ 下，MapBoundaryDetector 生成）
+        bgm          背景音乐文件名（audios/ 下，可省略）
+        spawn        默认出生点 {x, y, direction}（rect 左上角坐标）
+        exits        出口列表 [{rect, dir, target, target_spawn}]
+                     rect: [x, y, w, h]；dir: 触发所需移动方向
     """
 
-    def __init__(self, manager: SceneManager, save_data: dict | None) -> None:
+    def __init__(self, manager: SceneManager, scene_id: str = DEFAULT_SCENE,
+                 spawn_override: Optional[dict] = None) -> None:
         super().__init__(manager)
-        self._events: list[pygame.event.Event] = []
-        self._map_surface = self.surface.copy()
-        self._map_surface.fill((0, 0, 0))
-        if save_data is not None:
-            from gameplay import init_session_from_save
-            init_session_from_save(save_data)
 
+        data = load_scene_data(scene_id)
+        if data is None:
+            print(f"[场景] 回退到默认场景 {DEFAULT_SCENE}")
+            data = load_scene_data(DEFAULT_SCENE)
+        if data is None:
+            raise RuntimeError("默认场景数据缺失，无法进入游戏")
+        self._data = data
+        self.scene_id = data.get("id", scene_id)
+
+        self._background = load_background(data["background"])
+        self._boundary = load_boundary(data["boundary"])
+
+        spawn = spawn_override or data["spawn"]
+        self.player = Player(spawn["x"], spawn["y"], spawn.get("direction", "down"))
+        self.joystick = VirtualJoystick()
+        self.buttons = ActionButtons()
+        self.keyboard_dir = (0.0, 0.0)
+        self._events: list[pygame.event.Event] = []
+
+    # --- 工厂方法 ---
     @classmethod
     def new_game(cls, manager: SceneManager) -> "MapScene":
-        return cls(manager, None)
+        return cls(manager)
 
     @classmethod
     def from_save(cls, manager: SceneManager, save_data: dict) -> "MapScene":
-        return cls(manager, save_data)
+        scene_id = save_data.get("progress", {}).get("current_scene") or DEFAULT_SCENE
+        pos = save_data.get("position")
+        spawn = None
+        if pos:
+            spawn = {
+                "x": pos.get("x", 862),
+                "y": pos.get("y", 561),
+                "direction": pos.get("direction", "down"),
+            }
+        return cls(manager, scene_id, spawn_override=spawn)
 
+    # --- 生命周期 ---
+    def on_enter(self) -> None:
+        bgm = self._data.get("bgm")
+        if bgm:
+            music.play(os.path.join(AUDIO_FOLDER, bgm))
+
+    # --- 每帧 ---
     def handle_events(self, events: list[pygame.event.Event]) -> None:
-        # gameplay() 需要整帧事件列表做输入处理，这里只收集；
-        # ESC 返回主菜单在旧版是主循环直接处理的，此处保留该行为
-        self._events.extend(events)
+        self.buttons.reset_states()
+
         for event in events:
             if event.type == pygame.KEYDOWN and event.key in (pygame.K_ESCAPE, pygame.K_AC_BACK):
                 self._back_to_menu()
+                return
+            if get_touch_ui_visible():
+                self.joystick.handle_event(event)
+                self.buttons.handle_event(event)
+            else:
+                self.buttons.handle_back_event(event)
 
     def update(self, dt: float) -> None:
-        from gameplay import gameplay
-        self._map_surface, status = gameplay(self._events)
-        self._events.clear()
-        if status == "back":
+        if self.buttons.pressed['back']:
             self._back_to_menu()
-        elif status == "exit":
-            # 阶段三实现场景切换；当前先打印占位（与旧行为一致）
-            print("[主循环] 收到出口信号 — 场景切换待实现")
+            return
+
+        keys = pygame.key.get_pressed()
+        self.buttons.update_hold(keys)
+        self._update_keyboard_input(keys)
+
+        kx, ky = self.keyboard_dir
+        jx, jy = self.joystick.direction if get_touch_ui_visible() else (0.0, 0.0)
+        if abs(kx) > 0.1 or abs(ky) > 0.1:
+            dx, dy = kx, ky
+        else:
+            dx, dy = jx, jy
+
+        self.player.update(dx, dy, pygame.time.get_ticks(), self._boundary)
+        self._check_exits(dx, dy)
+
+    def draw(self) -> None:
+        self.surface.blit(self._background, (0, 0))
+        self.player.draw(self.surface)
+        if get_touch_ui_visible():
+            self.joystick.draw(self.surface)
+            self.buttons.draw(self.surface)
+        else:
+            self.buttons._draw_back_button(self.surface)
+
+    # --- 内部逻辑 ---
+    def _update_keyboard_input(self, keys) -> None:
+        dx, dy = 0.0, 0.0
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]: dx -= 1
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]: dx += 1
+        if keys[pygame.K_UP] or keys[pygame.K_w]: dy -= 1
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]: dy += 1
+
+        if dx == 0 and dy == 0:
+            self.keyboard_dir = (0.0, 0.0)
+            return
+
+        if dx != 0 and dy != 0:
+            length = math.hypot(dx, dy)
+            dx /= length
+            dy /= length
+        self.keyboard_dir = (dx, dy)
+
+    def _check_exits(self, dx: float, dy: float) -> None:
+        if self.manager.busy:
+            return
+        for exit_def in self._data.get("exits", []):
+            rect = pygame.Rect(exit_def["rect"])
+            if not self.player.rect.colliderect(rect):
+                continue
+
+            direction = exit_def.get("dir", "right")
+            moving_out = (
+                (direction == "right" and dx > 0.1) or
+                (direction == "left" and dx < -0.1) or
+                (direction == "down" and dy > 0.1) or
+                (direction == "up" and dy < -0.1)
+            )
+            if not moving_out:
+                continue
+
+            target = exit_def["target"]
+            spawn = exit_def.get("target_spawn")
+            print(f"[场景] 切换: {self.scene_id} → {target}")
+            self.manager.replace(MapScene(self.manager, target, spawn_override=spawn))
+            return
 
     def _back_to_menu(self) -> None:
         from scenes.scenes_menu import MainMenuScene
         self.manager.reset(MainMenuScene(self.manager))
-
-    def draw(self) -> None:
-        self.surface.blit(self._map_surface, (0, 0))
