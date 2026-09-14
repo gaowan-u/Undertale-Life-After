@@ -145,6 +145,28 @@ class Player:
             'right': ['stand_right', 'walk_right', 'stand_right', 'walk_right']
         }
 
+    def _move_checked(self, new_x: float, new_y: float, boundary) -> None:
+        """尝试移动到 (new_x, new_y)：先组合位移，不行退回单轴（保留贴墙滑行）。
+
+        检测的是赋值后的实际整数落点（pygame.Rect 存整数，浮点检测会在斜边处
+        因舍入错位把玩家挤出边界——曾导致"对角切角穿墙"）。"""
+        from map_boundary import is_point_inside
+        old_x, old_y = self.rect.x, self.rect.y
+
+        self.rect.x, self.rect.y = new_x, new_y
+        if is_point_inside(self.rect.centerx, self.rect.centery, boundary):
+            return
+
+        self.rect.x, self.rect.y = old_x, old_y
+        self.rect.x = new_x
+        if is_point_inside(self.rect.centerx, self.rect.centery, boundary):
+            return
+
+        self.rect.x = old_x
+        self.rect.y = new_y
+        if not is_point_inside(self.rect.centerx, self.rect.centery, boundary):
+            self.rect.y = old_y
+
     def update(self, dx: float, dy: float, current_time: int, boundary) -> None:
         is_moving = abs(dx) > 0.1 or abs(dy) > 0.1
 
@@ -154,18 +176,9 @@ class Player:
             else:
                 self.direction = 'down' if dy > 0 else 'up'
 
-            from map_boundary import is_point_inside
-            cx = self.rect.centerx
-            cy = self.rect.centery
             new_x = self.rect.x + dx * self.speed
             new_y = self.rect.y + dy * self.speed
-            new_cx = new_x + self.width // 2
-            new_cy = new_y + self.height // 2
-
-            if is_point_inside(new_cx, cy, boundary):
-                self.rect.x = new_x
-            if is_point_inside(cx, new_cy, boundary):
-                self.rect.y = new_y
+            self._move_checked(new_x, new_y, boundary)
 
             if current_time - self.animation_timer > self.frame_duration:
                 self.animation_timer = current_time
