@@ -37,7 +37,7 @@ if [ "$PLATFORM" = "linux" ] && [ -n "${PREFIX:-}" ]; then
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 export LD_LIBRARY_PATH="/data/data/com.termux/files/usr/lib:${SCRIPT_DIR}"
 chmod +x ./Undertale-AfterLife
-exec "${SCRIPT_DIR}/Undertale-AfterLife"
+exec "${SCRIPT_DIR}/Undertale-AfterLife" "$@"
 WRAPPER
     chmod +x "$DIST_DIR/run.sh"
     echo "[Termux] Usage: cd dist/main.dist && ./run.sh"
