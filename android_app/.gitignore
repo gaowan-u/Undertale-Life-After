@@ -1,0 +1,8 @@
+*.apk
+*.ap_
+*.dex
+/build/
+.gradle/
+/app/build/
+local.properties
+.DS_Store

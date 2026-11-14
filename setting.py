@@ -15,6 +15,7 @@ class Setting(MainMenu):
         self._touch_item_sel_surf: pygame.Surface | None = None
 
         self._show_confirm = False
+        self._confirm_selected: str | None = None
         self._build_confirm_dialog(res)
 
     def _build_confirm_dialog(self, res: Resources) -> None:
@@ -78,24 +79,57 @@ class Setting(MainMenu):
         if index == 2:
             if get_touch_ui_visible():
                 self._show_confirm = True
+                self._confirm_selected = "no"  # 默认落在“取消”，避免误确认
                 return None
             return "toggle_touch_ui"
         if index == 3:
             return "back"
         return None
 
+    def _handle_confirm_event(self, event) -> str | None:
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self._show_confirm = False
+                self._confirm_selected = None
+            elif event.key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d, pygame.K_TAB):
+                self._confirm_selected = "no" if self._confirm_selected == "yes" else "yes"
+            elif event.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_z):
+                if self._confirm_selected == "yes":
+                    self._show_confirm = False
+                    self._confirm_selected = None
+                    return "toggle_touch_ui"
+                self._show_confirm = False
+                self._confirm_selected = None
+            return None
+
+        if event.type == pygame.MOUSEMOTION:
+            pos = get_logical_mouse_pos()
+            if self._confirm_yes_rect.collidepoint(pos):
+                self._confirm_selected = "yes"
+            elif self._confirm_no_rect.collidepoint(pos):
+                self._confirm_selected = "no"
+            else:
+                self._confirm_selected = None
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # 以点击坐标为准，不依赖 hover 状态
+            pos = to_logical(event.pos)
+            if self._confirm_yes_rect.collidepoint(pos):
+                self._show_confirm = False
+                self._confirm_selected = None
+                return "toggle_touch_ui"
+            if self._confirm_no_rect.collidepoint(pos):
+                self._show_confirm = False
+                self._confirm_selected = None
+        return None
+
     def handle_event(self, event):
         if self._show_confirm:
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                pos = to_logical(event.pos)
-                if self._confirm_yes_rect.collidepoint(pos):
-                    self._show_confirm = False
-                    return "toggle_touch_ui"
-                if self._confirm_no_rect.collidepoint(pos):
-                    self._show_confirm = False
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                self._show_confirm = False
-            return None
+            return self._handle_confirm_event(event)
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                return "back"
+            return self._navigate_keyboard(event)
 
         if event.type == pygame.MOUSEMOTION:
             self.selected_index = self._index_at(get_logical_mouse_pos())
@@ -105,8 +139,6 @@ class Setting(MainMenu):
             if index != -1:
                 self.selected_index = index
                 return self._activate(index)
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            return "back"
 
         return None
 
@@ -149,7 +181,7 @@ class Setting(MainMenu):
                 self.screen.blit(line_surf, (line_x, line_y))
 
             mouse_pos = get_logical_mouse_pos()
-            yes_hover = self._confirm_yes_rect.collidepoint(mouse_pos)
-            no_hover = self._confirm_no_rect.collidepoint(mouse_pos)
+            yes_hover = self._confirm_yes_rect.collidepoint(mouse_pos) or self._confirm_selected == "yes"
+            no_hover = self._confirm_no_rect.collidepoint(mouse_pos) or self._confirm_selected == "no"
             self.screen.blit(self._btn_yes_hover if yes_hover else self._btn_yes_normal, self._confirm_yes_rect)
             self.screen.blit(self._btn_no_hover if no_hover else self._btn_no_normal, self._confirm_no_rect)

@@ -52,12 +52,31 @@ class MainMenu:
         return -1
 
     def _activate(self, index: int) -> str | None:
-        """菜单项被点击时返回的动作，子类可覆写。"""
+        """菜单项被点击/确认时返回的动作，子类可覆写。"""
         if 0 <= index < len(self._ACTIONS):
             return self._ACTIONS[index]
         return None
 
+    def _navigate_keyboard(self, event) -> str | None:
+        n = len(self.menu_items)
+        if event.key in (pygame.K_UP, pygame.K_w):
+            if self.selected_index == -1:
+                self.selected_index = n - 1
+            else:
+                self.selected_index = (self.selected_index - 1) % n
+        elif event.key in (pygame.K_DOWN, pygame.K_s):
+            if self.selected_index == -1:
+                self.selected_index = 0
+            else:
+                self.selected_index = (self.selected_index + 1) % n
+        elif event.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_z):
+            return self._activate(self.selected_index)
+        return None
+
     def handle_event(self, event) -> str | None:
+        if event.type == pygame.KEYDOWN:
+            return self._navigate_keyboard(event)
+
         if event.type == pygame.MOUSEMOTION:
             self.selected_index = self._index_at(get_logical_mouse_pos())
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -66,12 +85,13 @@ class MainMenu:
             if index != -1:
                 self.selected_index = index
                 return self._activate(index)
+
         return None
 
     def draw(self):
         self.screen.blit(self.overlay, (0, 0))
         self.screen.blit(self._title_surface, self._title_rect)
-        
+
         for index in range(len(self.menu_items)):
             if index == self.selected_index:
                 self.screen.blit(self._item_selected_surfaces[index], self.menu_rects[index])

@@ -7,7 +7,7 @@ Undertale: Survival After Disaster
 <summary> 点击查看项目更新日志</summary>
 
 | 标签 | 含义 | 时间高亮 |
-| :---: | --- | --- |
+|:---:|---|---|
 | 🟢 `feat` | 新功能 | 3天内（新鲜） |
 | 🔵 `perf` | 性能优化 | 7天内（近期） |
 | 🟡 `fix` | Bug修复 | — |
@@ -18,10 +18,16 @@ Undertale: Survival After Disaster
 
 项目更新
 
+- <span style="color:#2ea043">🟢 feat：游戏内暂停菜单与实时存档——ESC/安卓返回键呼出暂停菜单（继续游戏/保存游戏/保存并返回主菜单），新增玩家属性（等级/血量/攻防/金币/物品/装备）随存档持久化，游玩时长精确累计并校验合法性（2026-07-19）</span>
+- <span style="color:#2ea043">🟢 feat：全面键盘导航——主菜单/设置/存档菜单支持方向键、WASD、Enter/Space 选择，存档菜单支持 Delete 键删除存档，确认弹窗支持左右/Tab 切换（2026-07-19）</span>
+- <span style="color:#2ea043">🟢 feat：删除存档确认弹窗——删除操作需二次确认，防止误删存档（2026-07-19）</span>
+- <span style="color:#2ea043">🟡 fix：修复启动画面 2 秒阻塞期间无法响应退出事件、虚拟摇杆误读触屏事件 button 属性、动作按钮鼠标长按串扰及键盘 Z/X/C 长按失效等问题；动作按钮新增 FINGERMOTION 滑动切换支持（2026-07-19）</span>
+- <span style="color:#2ea043">🔵 perf：代码优化——save_menu 预计算 delete_rects 消除 draw/handle_event 中重复 Rect 构造，gameplay handle_back_event 使用直接 rect 碰撞检测替代 _hit_test 全区域扫描（2026-07-16）</span>
+- <span style="color:#2ea043">🟡 fix：修复 gameplay.py handle_back_event 方法缩进错误，导致 SyntaxError 文件无法编译（2026-07-16）</span>
 - <span style="color:#2ea043">🟡 fix：触控UI防误关——返回按钮永久可见可点（即使关闭触控UI也不会卡死在游戏里），关闭触控UI需确认弹窗（2026-07-14）</span>
-- <span style="color:#2ea043">🟣 refactor：代码清理与资源管理优化——删除 7 个未使用的 NotoSansSC 字体变体与废弃文件（cache.db/positions.json/begin.mp4），优化触屏/鼠标输入逻辑（`_mouse_pressed_btn` 精确追踪），开场动画模块级资源缓存避免每帧重复加载，字体加载添加容错回退，存档保存添加 key 白名单校验，边界文件缺失/损坏容错，统一使用 Resources 单例与 breathing_offset 静态方法（2026-07-12）</span>
+- <span style="color:#2ea043">🟣 refactor：代码清理与资源管理优化——删除 7 个未使用的 NotoSansSC 字体变体与废弃文件（cache.db/positions.json/begin.mp4），优化触屏/鼠标输入逻辑（_mouse_pressed_btn 精确追踪），开场动画模块级资源缓存避免每帧重复加载，字体加载添加容错回退，存档保存添加 key 白名单校验，边界文件缺失/损坏容错，统一使用 Resources 单例与 breathing_offset 静态方法（2026-07-12）</span>
 - <span style="color:#2ea043">🟣 refactor：废弃 APK 打包方案，删除 buildozer.spec、GitHub Actions 构建工作流、相关代码及资源文件（2026-07-09）</span>
-- <span style="color:#2ea043">🟣 refactor：MainMenu 支持自定义标题/菜单项，Setting 委托 MainMenu 构建菜单消除重复代码，save_system 提取纯读 `_read_save_file()` 消除 get_save_info 副作用，NameInputSystem 复用 Resources 单例与渐变遮罩（2026-07-09）</span>
+- <span style="color:#2ea043">🟣 refactor：MainMenu 支持自定义标题/菜单项，Setting 委托 MainMenu 构建菜单消除重复代码，save_system 提取纯读 _read_save_file() 消除 get_save_info 副作用，NameInputSystem 复用 Resources 单例与渐变遮罩（2026-07-09）</span>
 - <span style="color:#2ea043">🔵 perf：性能优化——预渲染静态文本、缓存存档列表、减少 NameInput 渐变每帧重建，避免 draw() 中重复 font.render() 调用（2026-06-23）</span>
 - <span style="color:#2ea043">🟢 feat：Minecraft 风格 Letterbox 缩放 + 多点触控 + 按钮长按——新增 screen_adapter 实现 1920×1080 离屏渲染（按宽高比缩放黑边补白），鼠标坐标全局转换到逻辑空间（to_logical/get_logical_mouse_pos），VirtualJoystick/ActionButtons 支持 FINGERDOWN/MOTION/UP 触屏事件与帧轮询长按（2026-06-23）</span>
 - <span style="color:#2ea043">🟡 fix：修复 SCALED 自适应全屏、菜单音乐无事件时不播放（将 BGM 播放从事件循环移至逻辑更新）、Android 竖屏旋转闪退及 p4a resolvelib 不兼容等问题（2026-06-23）</span>
@@ -205,9 +211,10 @@ python main.py
 
 4. **存档系统 (save_system.py / save_menu.py)**
    - 多存档位管理（3个槽位）
-   - 创建/加载/删除存档
+   - 创建/加载/删除存档（删除需二次确认）
    - 角色名称自定义输入
-   - JSON 格式存档数据
+   - JSON 格式存档数据（含玩家属性与游玩时长）
+   - 键盘导航（方向键选择 / Enter 确认 / Delete 删除）
 
 5. **设置菜单 (setting.py)**
    - 音量、画质、控制设置选项框架
@@ -216,7 +223,9 @@ python main.py
 6. **游戏玩法 (gameplay.py)**
    - 角色移动系统（键盘 WASD/方向键 + 触摸摇杆）
    - 角色动画系统（四方向站立/行走动画）
-   - 动作按钮（Z/X/C 键盘 + 触摸）
+   - 动作按钮（Z/X/C 键盘 + 触摸，支持滑动切换）
+   - 暂停菜单（ESC/返回键呼出，可保存游戏或返回主菜单）
+   - 玩家属性系统（等级/血量/攻防/金币/物品/装备）
    - 资源安全加载机制
 
 ### 项目更新说明

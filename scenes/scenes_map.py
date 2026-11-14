@@ -17,6 +17,7 @@ from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT, AUDIO_FOLDER, SCEN
 from gameplay import Player, VirtualJoystick, ActionButtons, load_background, get_touch_ui_visible
 from map_boundary import load_boundary
 from save_system import save_system
+from screen_adapter import to_logical
 import music
 
 DEFAULT_SCENE = "falling_ruins"
@@ -209,7 +210,7 @@ class MapScene(Scene):
 
         for event in events:
             if event.type == pygame.KEYDOWN and event.key in (pygame.K_ESCAPE, pygame.K_AC_BACK):
-                self._back_to_menu()
+                self.manager.push(PauseScene(self.manager, self), fade=False)
                 return
             if get_touch_ui_visible():
                 self.joystick.handle_event(event)
@@ -311,3 +312,100 @@ class MapScene(Scene):
     def _back_to_menu(self) -> None:
         from scenes.scenes_menu import MainMenuScene
         self.manager.reset(MainMenuScene(self.manager))
+
+
+# ==========================================
+# 暂停菜单（叠加在地图上，不更新下层 → 玩法冻结）
+# ==========================================
+class PauseScene(Scene):
+    """ESC 呼出的暂停菜单：继续 / 保存 / 保存并返回主菜单。
+
+    作为覆盖层 push 到地图之上；SceneManager 只更新栈顶场景，
+    因此地图会停在这一帧，无需额外暂停标志位。
+    """
+
+    ITEMS = ("继续游戏", "保存游戏", "保存并返回主菜单")
+
+    def __init__(self, manager: SceneManager, map_scene: "MapScene") -> None:
+        super().__init__(manager)
+        self._map = map_scene
+        res = Resources()
+
+        self._overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        self._overlay.fill((0, 0, 0, 160))
+
+        self._title = res.title_font_medium.render("暂停", True, res.COLOR_WHITE)
+        self._title_rect = self._title.get_rect(
+            center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4))
+
+        self._surfaces: list[pygame.Surface] = []
+        self._selected_surfaces: list[pygame.Surface] = []
+        self._rects: list[pygame.Rect] = []
+        for i, item in enumerate(self.ITEMS):
+            self._surfaces.append(res.title_font_medium.render(item, True, res.COLOR_WHITE))
+            self._selected_surfaces.append(res.title_font_medium.render(item, True, res.COLOR_YELLOW))
+            self._rects.append(self._surfaces[-1].get_rect(
+                center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + i * 80)))
+
+        self._heart = res.create_heart_surface(24, res.COLOR_RED)
+        self._saved_hint = res.font_24.render("已保存", True, res.COLOR_GREEN)
+        self.selected = 0
+        self._saved_at = -9999
+
+    def _index_at(self, pos: tuple[float, float]) -> int:
+        for i, rect in enumerate(self._rects):
+            if rect.collidepoint(pos):
+                return i
+        return -1
+
+    def _activate(self) -> None:
+        if self.selected == 0:
+            self.manager.pop()
+        elif self.selected == 1:
+            self._map._save_progress()
+            self._saved_at = pygame.time.get_ticks()
+        elif self.selected == 2:
+            self._map._save_progress()
+            from scenes.scenes_menu import MainMenuScene
+            self.manager.reset(MainMenuScene(self.manager))
+
+    def handle_events(self, events: list[pygame.event.Event]) -> None:
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key in (pygame.K_ESCAPE, pygame.K_AC_BACK):
+                    self.manager.pop()
+                    return
+                if event.key in (pygame.K_UP, pygame.K_w):
+                    self.selected = (self.selected - 1) % len(self.ITEMS)
+                elif event.key in (pygame.K_DOWN, pygame.K_s):
+                    self.selected = (self.selected + 1) % len(self.ITEMS)
+                elif event.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_z):
+                    self._activate()
+                    return
+            elif event.type == pygame.MOUSEMOTION:
+                index = self._index_at(to_logical(event.pos))
+                if index != -1:
+                    self.selected = index
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                index = self._index_at(to_logical(event.pos))
+                if index != -1:
+                    self.selected = index
+                    self._activate()
+                    return
+
+    def draw(self) -> None:
+        self.surface.blit(self._overlay, (0, 0))
+        self.surface.blit(self._title, self._title_rect)
+
+        for i, rect in enumerate(self._rects):
+            surf = self._selected_surfaces[i] if i == self.selected else self._surfaces[i]
+            self.surface.blit(surf, rect)
+            if i == self.selected:
+                heart_x = rect.left - 45 + Resources.breathing_offset()
+                heart_y = rect.centery - self._heart.get_height() / 2
+                self.surface.blit(self._heart, (heart_x, heart_y))
+
+        if pygame.time.get_ticks() - self._saved_at < 1500:
+            hint_rect = self._saved_hint.get_rect(
+                center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 3 * 80))
+            self.surface.blit(self._saved_hint, hint_rect)

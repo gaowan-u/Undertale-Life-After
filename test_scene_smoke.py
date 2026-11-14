@@ -16,7 +16,7 @@ pygame.init()
 screen = pygame.display.set_mode((1920, 1080))
 
 from scene_manager import SceneManager
-from scenes.scenes_map import DisclaimerScene, MapScene
+from scenes.scenes_map import DisclaimerScene, MapScene, PauseScene
 from scenes.scenes_menu import MainMenuScene, SettingScene, SaveMenuScene
 from gameplay import init_assets
 
@@ -151,13 +151,17 @@ for _ in range(3):
 check("读档进入存档场景", manager.current.scene_id == "entrance")
 check("读档位置生效", manager.current.player.rect.x == 100 and manager.current.player.rect.y == 728)
 
-# 6. 地图场景返回主菜单（模拟 gameplay 返回 "back" 不易构造，用 ESC 事件）
+# 6. 地图场景暂停菜单：ESC 打开/关闭，第三项保存并回主菜单
 manager.handle_events([pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE)])
-for _ in range(3):
-    manager.handle_events([])
-    manager.update()
-    manager.draw()
-check("ESC 回主菜单", isinstance(manager.current, MainMenuScene))
+check("ESC 打开暂停菜单", isinstance(manager.current, PauseScene))
+manager.handle_events([pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE)])
+check("暂停菜单 ESC 返回游戏", isinstance(manager.current, MapScene))
+manager.handle_events([pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE)])
+check("再次打开暂停菜单", isinstance(manager.current, PauseScene))
+pause_scene = manager.current
+manager.handle_events([pygame.event.Event(
+    pygame.MOUSEBUTTONDOWN, button=1, pos=pause_scene._rects[2].center)])
+check("暂停菜单返回主菜单", isinstance(manager.current, MainMenuScene))
 
 # 6b. 存档往返回路：开局分配槽位 → 离开地图自动写盘 → 读档还原场景与坐标
 from save_system import save_system
@@ -178,13 +182,23 @@ save_scene = manager.current
 save_scene.player.rect.x = 1234
 save_scene.player.rect.y = 567
 save_scene.player.direction = "left"
-manager.reset(MainMenuScene(manager))  # 退出地图 → on_exit 自动存档
+
+manager.handle_events([pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE)])
+check("暂停菜单已打开", isinstance(manager.current, PauseScene))
+pause_scene = manager.current
+manager.handle_events([pygame.event.Event(
+    pygame.MOUSEBUTTONDOWN, button=1, pos=pause_scene._rects[1].center)])
+check("暂停菜单保存游戏", isinstance(manager.current, PauseScene))
 
 with open(os.path.join(tmp_dir, "save_1.json"), "r", encoding="utf-8") as f:
     saved = json.load(f)
-check("退出地图自动写入场景", saved["progress"]["current_scene"] == "falling_ruins")
-check("退出地图自动写入坐标", saved["position"]["x"] == 1234 and saved["position"]["y"] == 567)
-check("退出地图自动写入朝向", saved["position"]["direction"] == "left")
+check("暂停保存写入场景", saved["progress"]["current_scene"] == "falling_ruins")
+check("暂停保存写入坐标", saved["position"]["x"] == 1234 and saved["position"]["y"] == 567)
+check("暂停保存写入朝向", saved["position"]["direction"] == "left")
+
+manager.handle_events([pygame.event.Event(
+    pygame.MOUSEBUTTONDOWN, button=1, pos=pause_scene._rects[2].center)])
+check("暂停菜单保存并返回主菜单", isinstance(manager.current, MainMenuScene))
 
 loaded = save_system.load_save(1)
 check("读档返回存档数据", loaded is not None)
