@@ -22,6 +22,11 @@ from scene_manager import SceneManager
 from scenes.scenes_map import IntroScene
 
 
+def _parse_args(argv: list[str]) -> bool:
+    """解析启动参数。目前只有 --mute / -m：跳过音频初始化，静音启动。"""
+    return '--mute' in argv or '-m' in argv
+
+
 def _check_pulse_running() -> bool:
     """检测 pulseaudio 是否正在运行（带超时）。"""
     try:
@@ -34,8 +39,11 @@ def _check_pulse_running() -> bool:
         return False
 
 
-def _init_audio() -> bool:
-    """初始化音频。根据运行环境选择不同路径。"""
+def _init_audio(mute: bool = False) -> bool:
+    """初始化音频。根据运行环境选择不同路径。mute=True 时直接跳过。"""
+    if mute:
+        return False
+
     # Termux 环境：检测 pulseaudio，必要时自动修复
     if 'PREFIX' in os.environ:
         if not _check_pulse_running():
@@ -63,14 +71,18 @@ def _init_audio() -> bool:
 
 def main() -> NoReturn:
     # --- 初始化 ---
+    mute = _parse_args(sys.argv[1:])
     pygame.init()
-    audio_available = _init_audio()
-    if not audio_available:
+    audio_available = _init_audio(mute)
+    if not audio_available and not mute:
         print("错误：无法初始化音频。")
         print("请确保音频服务已启动，例如：")
         print("  pulseaudio --start")
+        print("提示：确实没有音频设备时，可用 --mute 静音启动。")
         pygame.quit()
-        sys.exit()
+        sys.exit(1)
+    if mute:
+        print("静音启动（--mute）")
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
     pygame.display.set_caption("传说之下-劫后余生")
     recreate_adapter(screen)

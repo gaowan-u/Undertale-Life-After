@@ -4,10 +4,15 @@ import pygame
 _current: str | None = None
 
 
+def _available() -> bool:
+    """mixer 未初始化（如 --mute 静音启动）时静默跳过，不刷警告。"""
+    return pygame.mixer.get_init() is not None
+
+
 def play(path: str) -> None:
     """循环播放指定音乐。若与当前曲目相同则什么都不做。"""
     global _current
-    if _current == path:
+    if not _available() or _current == path:
         return
     try:
         pygame.mixer.music.load(path)
@@ -19,5 +24,8 @@ def play(path: str) -> None:
 
 def stop() -> None:
     global _current
+    if not _available():
+        _current = None
+        return
     pygame.mixer.music.stop()
     _current = None

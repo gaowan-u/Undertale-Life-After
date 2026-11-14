@@ -60,13 +60,18 @@ def _load_resources() -> None:
         print(f"错误: 音频文件不存在: {audio_path}")
         sys.exit(1)
 
-    try:
-        _cached_sound = pygame.mixer.Sound(audio_path)
-        _cached_audio_available = True
-    except pygame.error:
-        print(f"警告: 无法加载音频: {audio_path}，将在静音模式下播放开场动画")
+    if pygame.mixer.get_init() is None:
+        # --mute 静音启动：mixer 未初始化，跳过加载即可，不必刷警告
         _cached_sound = None
         _cached_audio_available = False
+    else:
+        try:
+            _cached_sound = pygame.mixer.Sound(audio_path)
+            _cached_audio_available = True
+        except pygame.error:
+            print(f"警告: 无法加载音频: {audio_path}，将在静音模式下播放开场动画")
+            _cached_sound = None
+            _cached_audio_available = False
 
     _cached = True
 
