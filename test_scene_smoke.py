@@ -5,9 +5,11 @@
 """
 import os
 import sys
+import json
+import shutil
+import tempfile
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
-
 import pygame
 pygame.init()
 # dummy 驱动下 display 未开也可能无法 convert，开个最小窗口
@@ -41,6 +43,19 @@ for _ in range(5):
     manager.update()
     manager.draw()
 check("主菜单跑5帧无异常", True)
+
+# 2a. 菜单点击以坐标为准：清掉 hover 记录后点击仍应命中
+menu_scene = manager.current
+menu_scene.menu.selected_index = -1
+click_pos = menu_scene.menu.menu_rects[2].center
+manager.handle_events([pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=click_pos)])
+check("无 hover 时点击命中菜单项", isinstance(manager.current, SettingScene))
+manager.pop()
+for _ in range(3):
+    manager.handle_events([])
+    manager.update()
+    manager.draw()
+check("点击测试后回到主菜单", isinstance(manager.current, MainMenuScene))
 
 # 3. 打开设置（push）→ 返回（pop）
 manager.push(SettingScene(manager))
@@ -143,6 +158,44 @@ for _ in range(3):
     manager.update()
     manager.draw()
 check("ESC 回主菜单", isinstance(manager.current, MainMenuScene))
+
+# 6b. 存档往返回路：开局分配槽位 → 离开地图自动写盘 → 读档还原场景与坐标
+from save_system import save_system
+
+tmp_dir = tempfile.mkdtemp(prefix="ula_save_test_")
+real_save_dir = save_system.save_dir
+save_system.save_dir = tmp_dir
+save_system.current_save_slot = None
+
+menu_scene = manager.current
+start_pos = menu_scene.menu.menu_rects[0].center
+manager.handle_events([pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=start_pos)])
+check("点击开始游戏进入地图", isinstance(manager.current, MapScene))
+check("开始游戏自动分配存档位", save_system.current_save_slot == 1)
+check("存档文件已创建", os.path.exists(os.path.join(tmp_dir, "save_1.json")))
+
+save_scene = manager.current
+save_scene.player.rect.x = 1234
+save_scene.player.rect.y = 567
+save_scene.player.direction = "left"
+manager.reset(MainMenuScene(manager))  # 退出地图 → on_exit 自动存档
+
+with open(os.path.join(tmp_dir, "save_1.json"), "r", encoding="utf-8") as f:
+    saved = json.load(f)
+check("退出地图自动写入场景", saved["progress"]["current_scene"] == "falling_ruins")
+check("退出地图自动写入坐标", saved["position"]["x"] == 1234 and saved["position"]["y"] == 567)
+check("退出地图自动写入朝向", saved["position"]["direction"] == "left")
+
+loaded = save_system.load_save(1)
+check("读档返回存档数据", loaded is not None)
+manager.reset(MapScene.from_save(manager, loaded))
+check("读档还原场景", manager.current.scene_id == "falling_ruins")
+check("读档还原坐标", manager.current.player.rect.x == 1234 and manager.current.player.rect.y == 567)
+
+save_system.current_save_slot = None
+save_system.save_dir = real_save_dir
+shutil.rmtree(tmp_dir, ignore_errors=True)
+manager.reset(MainMenuScene(manager))
 
 # 7. 免责声明场景计时结束自动切换
 manager.reset(DisclaimerScene(manager))

@@ -36,6 +36,8 @@ class MainMenuScene(MenuMusicMixin, Scene):
     def handle_event(self, event: pygame.event.Event) -> None:
         action = self.menu.handle_event(event)
         if action == "start_game":
+            if not save_system.begin_new_game():
+                print("警告：三个存档位已满，本局不会保存进度")
             from scenes.scenes_map import MapScene
             self.manager.reset(MapScene.new_game(self.manager))
         elif action == "load_game":

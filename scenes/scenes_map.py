@@ -16,6 +16,7 @@ from scene_manager import Scene, SceneManager
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT, AUDIO_FOLDER, SCENES_FOLDER
 from gameplay import Player, VirtualJoystick, ActionButtons, load_background, get_touch_ui_visible
 from map_boundary import load_boundary
+from save_system import save_system
 import music
 
 DEFAULT_SCENE = "falling_ruins"
@@ -172,6 +173,7 @@ class MapScene(Scene):
         self.buttons = ActionButtons()
         self.keyboard_dir = (0.0, 0.0)
         self._events: list[pygame.event.Event] = []
+        self._scene_start_ms = pygame.time.get_ticks()
 
     # --- 工厂方法 ---
     @classmethod
@@ -196,6 +198,10 @@ class MapScene(Scene):
         bgm = self._data.get("bgm")
         if bgm:
             music.play(os.path.join(AUDIO_FOLDER, bgm))
+        self._save_progress()
+
+    def on_exit(self) -> None:
+        self._save_progress()
 
     # --- 每帧 ---
     def handle_events(self, events: list[pygame.event.Event]) -> None:
@@ -240,6 +246,27 @@ class MapScene(Scene):
             self.buttons._draw_back_button(self.surface)
 
     # --- 内部逻辑 ---
+    def _save_progress(self) -> None:
+        """把当前场景与位置写回存档（无槽位时静默跳过）。
+
+        进入/离开地图都会调用：on_exit 覆盖出口切换与退回菜单，
+        on_enter 覆盖新开局与读档落点；窗口正常关闭也会经 manager.quit()
+        触发 on_exit，所以崩溃以外的退出都能留下进度。
+        """
+        if not save_system.current_save_slot:
+            return
+        elapsed = max(0, pygame.time.get_ticks() - self._scene_start_ms) // 1000
+        save_system.save_game({
+            "player_position": {
+                "x": self.player.rect.x,
+                "y": self.player.rect.y,
+                "direction": self.player.direction,
+            },
+            "progress": {"current_scene": self.scene_id},
+            "play_time": elapsed,
+        })
+        self._scene_start_ms = pygame.time.get_ticks()
+
     def _update_keyboard_input(self, keys) -> None:
         dx, dy = 0.0, 0.0
         if keys[pygame.K_LEFT] or keys[pygame.K_a]: dx -= 1

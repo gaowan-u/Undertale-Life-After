@@ -1,10 +1,12 @@
 from typing import List
 import pygame
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
-from screen_adapter import get_logical_mouse_pos
+from screen_adapter import get_logical_mouse_pos, to_logical
 
 
 class MainMenu:
+    _ACTIONS = ("start_game", "load_game", "open_settings", "exit")
+
     def __init__(self, screen, items=None, title="主菜单"):
         self.screen = screen
 
@@ -42,26 +44,28 @@ class MainMenu:
         self._title_rect = self._title_surface.get_rect(
             center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4))
 
+    def _index_at(self, pos: tuple[float, float]) -> int:
+        """逻辑坐标命中的菜单项索引，未命中返回 -1。"""
+        for index, rect in enumerate(self.menu_rects):
+            if rect.collidepoint(pos):
+                return index
+        return -1
+
+    def _activate(self, index: int) -> str | None:
+        """菜单项被点击时返回的动作，子类可覆写。"""
+        if 0 <= index < len(self._ACTIONS):
+            return self._ACTIONS[index]
+        return None
+
     def handle_event(self, event) -> str | None:
         if event.type == pygame.MOUSEMOTION:
-            mouse_pos = get_logical_mouse_pos()
-            self.selected_index = -1
-            for index, rect in enumerate(self.menu_rects):
-                if rect.collidepoint(mouse_pos):
-                    self.selected_index = index
-                    break
-        
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1 and self.selected_index != -1:
-                if self.selected_index == 0:
-                    return "start_game"
-                elif self.selected_index == 1:
-                    return "load_game"
-                elif self.selected_index == 2:
-                    return "open_settings"
-                elif self.selected_index == 3:
-                    return "exit"
-        
+            self.selected_index = self._index_at(get_logical_mouse_pos())
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # 以点击坐标为准，不依赖 hover 状态（快速移动/触屏 tap 时 hover 可能过期）
+            index = self._index_at(to_logical(event.pos))
+            if index != -1:
+                self.selected_index = index
+                return self._activate(index)
         return None
 
     def draw(self):

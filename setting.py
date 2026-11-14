@@ -2,7 +2,7 @@ import pygame
 from main_menu import MainMenu
 from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
 from gameplay import get_touch_ui_visible
-from screen_adapter import get_logical_mouse_pos
+from screen_adapter import get_logical_mouse_pos, to_logical
 
 
 class Setting(MainMenu):
@@ -15,7 +15,6 @@ class Setting(MainMenu):
         self._touch_item_sel_surf: pygame.Surface | None = None
 
         self._show_confirm = False
-        self._confirm_selected: str | None = None
         self._build_confirm_dialog(res)
 
     def _build_confirm_dialog(self, res: Resources) -> None:
@@ -71,55 +70,43 @@ class Setting(MainMenu):
         pygame.draw.rect(self._btn_no_hover, color_yellow, (0, 0, btn_w, btn_h), 2, border_radius=8)
         self._btn_no_hover.blit(no_text, ((btn_w - no_text.get_width()) // 2, (btn_h - no_text.get_height()) // 2))
 
+    def _activate(self, index: int) -> str | None:
+        if index == 0:
+            return "volume"
+        if index == 1:
+            return "quality"
+        if index == 2:
+            if get_touch_ui_visible():
+                self._show_confirm = True
+                return None
+            return "toggle_touch_ui"
+        if index == 3:
+            return "back"
+        return None
+
     def handle_event(self, event):
         if self._show_confirm:
-            if event.type == pygame.MOUSEMOTION:
-                mouse_pos = get_logical_mouse_pos()
-                if self._confirm_yes_rect.collidepoint(mouse_pos):
-                    self._confirm_selected = "yes"
-                elif self._confirm_no_rect.collidepoint(mouse_pos):
-                    self._confirm_selected = "no"
-                else:
-                    self._confirm_selected = None
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if self._confirm_selected == "yes":
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                pos = to_logical(event.pos)
+                if self._confirm_yes_rect.collidepoint(pos):
                     self._show_confirm = False
-                    self._confirm_selected = None
                     return "toggle_touch_ui"
-                elif self._confirm_selected == "no":
+                if self._confirm_no_rect.collidepoint(pos):
                     self._show_confirm = False
-                    self._confirm_selected = None
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 self._show_confirm = False
-                self._confirm_selected = None
             return None
 
         if event.type == pygame.MOUSEMOTION:
-            mouse_pos = get_logical_mouse_pos()
-            self.selected_index = -1
-            for index, rect in enumerate(self.menu_rects):
-                if rect.collidepoint(mouse_pos):
-                    self.selected_index = index
-                    break
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1 and self.selected_index != -1:
-                if self.selected_index == 0:
-                    return "volume"
-                elif self.selected_index == 1:
-                    return "quality"
-                elif self.selected_index == 2:
-                    if get_touch_ui_visible():
-                        self._show_confirm = True
-                        return None
-                    else:
-                        return "toggle_touch_ui"
-                elif self.selected_index == 3:
-                    return "back"
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                return "back"
+            self.selected_index = self._index_at(get_logical_mouse_pos())
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # 以点击坐标为准，不依赖 hover 状态
+            index = self._index_at(to_logical(event.pos))
+            if index != -1:
+                self.selected_index = index
+                return self._activate(index)
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            return "back"
 
         return None
 

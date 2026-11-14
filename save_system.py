@@ -3,13 +3,13 @@ import json
 import os
 import time
 import pygame
-from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT
+from resources import Resources, SCREEN_WIDTH, SCREEN_HEIGHT, BASE_FOLDER
 from screen_adapter import get_logical_mouse_pos, to_logical
 
 
 class SaveSystem:
     def __init__(self) -> None:
-        self.save_dir: str = "saves"
+        self.save_dir: str = os.path.join(BASE_FOLDER, "saves")
         self.current_save_slot: Optional[int] = None
         self.player_name: str = "Frisk"
         
@@ -78,6 +78,18 @@ class SaveSystem:
             print(f"创建存档失败: {e}")
             return False
     
+    def begin_new_game(self) -> bool:
+        """为“开始游戏”分配存档位：优先空位，全满时沿用当前槽位。
+
+        返回是否存在可写入的存档位（False 表示本局不落盘）。
+        """
+        for slot_id in range(1, 4):
+            if self.get_save_info(slot_id) is None:
+                return self.create_new_save(slot_id)
+        if self.current_save_slot:
+            return self.create_new_save(self.current_save_slot)
+        return False
+
     def _read_save_file(self, slot_id: int) -> Optional[Dict[str, Any]]:
         """读取存档文件，不含任何副作用。"""
         save_path = self.get_save_file_path(slot_id)
