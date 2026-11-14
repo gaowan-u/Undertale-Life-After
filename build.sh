@@ -3,6 +3,9 @@ set -eu
 
 # Undertale: AfterLife — Nuitka 构建脚本
 
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT_DIR"
+
 PLATFORM="${1:-$(uname -s | tr '[:upper:]' '[:lower:]')}"
 case "$PLATFORM" in
     linux|windows|macos|darwin) ;;
@@ -29,14 +32,14 @@ DIST_DIR="dist/main.dist"
 
 # ── Termux patches ─────────────────────────────────────────────────
 if [ "$PLATFORM" = "linux" ] && [ -n "${PREFIX:-}" ]; then
-    echo "[Termux] Bundling libpython..."
-    cp "${PREFIX}/lib/libpython3.14.so" "$DIST_DIR/" 2>/dev/null || true
+    echo "[Termux] Bundling shared libraries..."
+    python3 "$ROOT_DIR/tools/bundle_termux_libs.py" "$DIST_DIR"
     echo "[Termux] Creating launch wrapper..."
     cat > "$DIST_DIR/run.sh" << 'WRAPPER'
 #!/data/data/com.termux/files/usr/bin/bash
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-export LD_LIBRARY_PATH="/data/data/com.termux/files/usr/lib:${SCRIPT_DIR}"
-chmod +x ./Undertale-AfterLife
+export LD_LIBRARY_PATH="${SCRIPT_DIR}:${PREFIX:-/data/data/com.termux/files/usr}/lib"
+chmod +x "${SCRIPT_DIR}/Undertale-AfterLife"
 exec "${SCRIPT_DIR}/Undertale-AfterLife" "$@"
 WRAPPER
     chmod +x "$DIST_DIR/run.sh"
